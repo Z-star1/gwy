@@ -25,8 +25,18 @@ body {
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+  font-size: 16px; /* 避免 iOS/安卓聚焦时页面缩放 */
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }

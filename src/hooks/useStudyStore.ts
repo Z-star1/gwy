@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ModuleProgress, ModuleStatus, ScoreRecord, StudyLog, StudyState } from '../types';
+import type {
+  ModuleProgress,
+  ModuleStatus,
+  NotebookEntry,
+  NotebookKind,
+  ScoreRecord,
+  StudyLog,
+  StudyState,
+} from '../types';
 import { XINGCE_MODULES, SHENLUN_MODULES } from '../data/examData';
 
 const STORAGE_KEY = 'gwy-study-state';
@@ -12,19 +20,34 @@ function createDefaultProgress(): Record<string, ModuleProgress> {
   return progress;
 }
 
-function loadState(): StudyState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as StudyState;
-  } catch {
-    /* use default */
-  }
+function defaultState(): StudyState {
   return {
     moduleProgress: createDefaultProgress(),
     scoreRecords: [],
     studyLogs: [],
     startDate: new Date().toISOString().split('T')[0],
+    notebook: [],
   };
+}
+
+function loadState(): StudyState {
+  const defaults = defaultState();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw) as Partial<StudyState>;
+    return {
+      ...defaults,
+      ...parsed,
+      moduleProgress: { ...defaults.moduleProgress, ...parsed.moduleProgress },
+      scoreRecords: parsed.scoreRecords ?? [],
+      studyLogs: parsed.studyLogs ?? [],
+      notebook: parsed.notebook ?? [],
+      startDate: parsed.startDate ?? defaults.startDate,
+    };
+  } catch {
+    return defaults;
+  }
 }
 
 function saveState(state: StudyState) {
@@ -85,6 +108,63 @@ export function useStudyStore() {
     }));
   }, []);
 
+  const addNotebookEntry = useCallback((entry: Omit<NotebookEntry, 'id' | 'createdAt'>) => {
+    setState((prev) => ({
+      ...prev,
+      notebook: [
+        {
+          ...entry,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        },
+        ...prev.notebook,
+      ],
+    }));
+  }, []);
+
+  const updateNotebookEntry = useCallback((id: string, patch: Partial<NotebookEntry>) => {
+    setState((prev) => ({
+      ...prev,
+      notebook: prev.notebook.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+    }));
+  }, []);
+
+  const deleteNotebookEntry = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      notebook: prev.notebook.filter((e) => e.id !== id),
+    }));
+  }, []);
+
+  const isMaterialSaved = useCallback(
+    (materialId: string) => state.notebook.some((e) => e.sourceMaterialId === materialId),
+    [state.notebook],
+  );
+
+  const saveMaterialToNotebook = useCallback(
+    (payload: { materialId: string; kind: NotebookKind; text: string; note: string }) => {
+      setState((prev) => {
+        if (prev.notebook.some((e) => e.sourceMaterialId === payload.materialId)) return prev;
+        return {
+          ...prev,
+          notebook: [
+            {
+              id: crypto.randomUUID(),
+              kind: payload.kind,
+              text: payload.text,
+              note: payload.note,
+              sourceMaterialId: payload.materialId,
+              createdAt: new Date().toISOString(),
+              favorite: false,
+            },
+            ...prev.notebook,
+          ],
+        };
+      });
+    },
+    [],
+  );
+
   const latestMock = state.scoreRecords.find((r) => r.type === 'mock');
   const bestMock = state.scoreRecords
     .filter((r) => r.type === 'mock')
@@ -105,6 +185,11 @@ export function useStudyStore() {
     addScoreRecord,
     addStudyLog,
     deleteScoreRecord,
+    addNotebookEntry,
+    updateNotebookEntry,
+    deleteNotebookEntry,
+    isMaterialSaved,
+    saveMaterialToNotebook,
     latestMock,
     bestMock,
     totalHours,
