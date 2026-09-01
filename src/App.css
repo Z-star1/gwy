@@ -875,7 +875,39 @@
   max-width: 1280px;
 }
 
-.exam-hero h2 { margin-bottom: 8px; }
+.zhenti-index {
+  margin-bottom: 28px;
+}
+
+.zhenti-index h3 {
+  margin-bottom: 8px;
+}
+
+.zhenti-legal {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.official-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.official-links a {
+  color: var(--xingce);
+  font-weight: 600;
+}
+
+.zhenti-card {
+  border-left: 4px solid var(--xingce);
+}
+
+.subsection-title {
+  margin: 8px 0 12px;
+}
 .exam-hero p {
   color: var(--text-muted);
   margin-bottom: 16px;

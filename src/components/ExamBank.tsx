@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PAPER_YEARS, SHENLUN_PAPERS, getPaper } from '../data/shenlunPapers';
+import { OFFICIAL_LINKS, ZHENTI_INDEX } from '../data/zhentiIndex';
 import type { ExamAttempt, ShenlunPaper } from '../types';
 import { QUESTION_TYPE_LABELS } from '../types';
 
@@ -52,10 +53,46 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
       <div className="exam-hero">
         <h2>申论题库（电脑作答）</h2>
         <p>
-          按年份练习行政执法类申论模拟卷。左侧读材料，右侧答题，可限时、交卷后对照参考要点。
-          <strong> 不是国考/省考官方真题全文</strong>（版权限制），题型、分值和作答方式与考场一致，便于在职在电脑上练手感。
+          按年份练习行政执法类申论。官方真题全文受版权保护，<strong>不能放进本站在线作答</strong>。
+          下面先给出真题年份索引和正规获取渠道；需要练手感时，用本站模拟卷（左侧材料、右侧答题）。
         </p>
       </div>
+
+      <div className="zhenti-index">
+        <h3>国考申论真题索引（行政执法卷）</h3>
+        <p className="zhenti-legal">
+          国家公务员局官网发布公告、大纲和部分说明，一般不提供历年完整试卷下载。
+          完整真题请买中国人事出版社等正版汇编，或省级人事考试机构出版物。不要用来路不明的 PDF。
+        </p>
+        <div className="official-links">
+          {OFFICIAL_LINKS.map((l) => (
+            <a key={l.url} href={l.url} target="_blank" rel="noreferrer">
+              {l.name} ↗
+            </a>
+          ))}
+        </div>
+        <div className="paper-list">
+          {ZHENTI_INDEX.map((item) => (
+            <article key={`${item.year}-${item.paper}`} className="paper-card zhenti-card">
+              <div>
+                <span className="year-badge">{item.year}</span>
+                <h3>{item.paper}</h3>
+                <p><strong>公开报道主题：</strong>{item.theme}</p>
+                <p>{item.notes}</p>
+              </div>
+              {item.practiceId && (
+                <div className="paper-card-actions">
+                  <button type="button" onClick={() => setPaperId(item.practiceId!)}>
+                    用模拟卷练同结构
+                  </button>
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <h3 className="subsection-title">本站可作答：模拟卷</h3>
 
       <div className="chip-row">
         <button type="button" className={`chip ${year === 'all' ? 'active' : ''}`} onClick={() => setYear('all')}>
