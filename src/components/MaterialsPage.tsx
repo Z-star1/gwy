@@ -5,8 +5,16 @@ import type { Material, MaterialCategory, NotebookEntry, NotebookKind } from '..
 import { MATERIAL_CATEGORY_LABELS, NOTEBOOK_KIND_LABELS } from '../types';
 
 type InnerTab = 'library' | 'notebook';
+type LibraryFilter = MaterialCategory | 'all' | 'zhifa';
 
-const CATEGORIES: Array<MaterialCategory | 'all'> = ['all', 'jinju', 'anli', 'chengyu', 'zhengce'];
+const FILTERS: { id: LibraryFilter; label: string }[] = [
+  { id: 'all', label: '全部' },
+  { id: 'zhifa', label: '行政执法' },
+  { id: 'jinju', label: '申论金句' },
+  { id: 'anli', label: '典型案例' },
+  { id: 'chengyu', label: '高频成语' },
+  { id: 'zhengce', label: '政策热词' },
+];
 
 interface Props {
   notebook: NotebookEntry[];
@@ -26,14 +34,15 @@ export function MaterialsPage({
   onDeleteEntry,
 }: Props) {
   const [inner, setInner] = useState<InnerTab>('library');
-  const [category, setCategory] = useState<MaterialCategory | 'all'>('all');
+  const [category, setCategory] = useState<LibraryFilter>('all');
   const [query, setQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return MATERIALS.filter((m) => {
-      if (category !== 'all' && m.category !== category) return false;
+      if (category === 'zhifa' && !m.tags.includes('行政执法')) return false;
+      if (category !== 'all' && category !== 'zhifa' && m.category !== category) return false;
       if (!q) return true;
       return [m.title, m.content, m.usage, ...m.tags].join(' ').toLowerCase().includes(q);
     });
@@ -51,7 +60,7 @@ export function MaterialsPage({
     <section className="materials-page">
       <div className="materials-hero">
         <h2>素材与词句</h2>
-        <p>通勤、午休都能看。金句、案例、成语、热词随时抄进自己的积累本。</p>
+        <p>通勤、午休都能看。金句、案例、成语、热词随时抄进自己的积累本。已收录行政执法方向申论素材。</p>
       </div>
 
       <div className="inner-tabs" role="tablist">
@@ -73,14 +82,14 @@ export function MaterialsPage({
             onChange={(e) => setQuery(e.target.value)}
           />
           <div className="chip-row">
-            {CATEGORIES.map((c) => (
+            {FILTERS.map((c) => (
               <button
-                key={c}
+                key={c.id}
                 type="button"
-                className={`chip ${category === c ? 'active' : ''}`}
-                onClick={() => setCategory(c)}
+                className={`chip ${category === c.id ? 'active' : ''}`}
+                onClick={() => setCategory(c.id)}
               >
-                {c === 'all' ? '全部' : MATERIAL_CATEGORY_LABELS[c]}
+                {c.label}
               </button>
             ))}
           </div>
