@@ -11,8 +11,9 @@ createRoot(document.getElementById('root')!).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      /* 本地预览失败时不影响使用 */
+    const swUrl = `${import.meta.env.BASE_URL}sw.js`
+    navigator.serviceWorker.register(swUrl, { scope: import.meta.env.BASE_URL }).catch(() => {
+      /* 预览或无 HTTPS 时不影响使用 */
     });
   });
 }

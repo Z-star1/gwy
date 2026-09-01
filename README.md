@@ -31,20 +31,65 @@
 - **高频成语**：易混辨析，服务言语填空积累
 - **政策热词**：新质生产力、中国式现代化、双碳等
 
-## 本地运行
+## 部署上线（给手机用）
+
+这是静态网站，构建后只有 `dist/` 文件夹。**必须用 HTTPS**，安卓才能「添加到主屏幕」。
+
+线上地址（合并到 `main` 并打开 Pages 之后）：
+
+**https://z-star1.github.io/gwy/**
+
+### 方式一：GitHub Pages（推荐，免费）
+
+仓库里已有自动部署工作流。你需要做两件事：
+
+1. 把代码合并进 `main` 分支  
+2. 打开仓库 → **Settings → Pages → Build and deployment**  
+   - Source 选 **GitHub Actions**
+
+之后每次推送到 `main`，几分钟后网站就会更新。  
+手机用 Chrome 打开上面的地址 → 菜单 → **添加到主屏幕**。
+
+也可在仓库 **Actions** 里手动点 `Deploy GitHub Pages` → `Run workflow`。
+
+### 方式二：Vercel（点几下，也免费）
+
+1. 打开 [https://vercel.com](https://vercel.com)，用 GitHub 登录  
+2. Import 仓库 `Z-star1/gwy`  
+3. 框架选 Vite，构建命令 `npm run build`，输出目录 `dist`  
+4. Deploy。会得到类似 `https://gwy-xxx.vercel.app` 的地址
+
+### 方式三：自己的服务器
 
 ```bash
 npm install
-npm run dev
+npm run build
 ```
 
-手机和电脑在同一局域网时，用终端里的 Network 地址访问。
+把 `dist/` 里的全部文件拷到 Nginx / 对象存储 / 任意静态空间。Nginx 示例：
 
-## 构建
+```nginx
+server {
+  listen 443 ssl;
+  server_name your.domain.com;
+  root /var/www/gwy;
+  index index.html;
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
+```
+
+### 本地预览构建结果
 
 ```bash
 npm run build
 npm run preview
 ```
 
-部署到任意静态托管后，安卓 Chrome 即可「添加到主屏幕」。
+电脑浏览器打开 `http://localhost:4173`。同一 Wi-Fi 下，手机访问终端里显示的 Network 地址（仅测试，不能当正式站）。
+
+### 注意
+
+- 学习进度和积累本存在**当前浏览器**，换设备不会同步  
+- 第一次用手机打开正式站后，再「添加到主屏幕」
