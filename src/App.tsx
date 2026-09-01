@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
+import { DailyPlan } from './components/DailyPlan';
 import { ModuleSection } from './components/ModuleSection';
 import { ScoreTracker } from './components/ScoreTracker';
 import { StudyPlan } from './components/StudyPlan';
@@ -59,8 +60,11 @@ export default function App() {
             masteredCount={store.masteredCount}
             totalModules={store.totalModules}
             daysStudying={daysSince(store.state.startDate)}
+            startDate={store.state.startDate}
           />
         )}
+
+        {tab === 'overview' && <DailyPlan />}
 
         {tab === 'overview' && (
           <>
@@ -121,7 +125,12 @@ export default function App() {
           />
         )}
 
-        {tab === 'plan' && <StudyPlan />}
+        {tab === 'plan' && (
+          <>
+            <DailyPlan />
+            <StudyPlan />
+          </>
+        )}
       </main>
 
       <footer className="footer">

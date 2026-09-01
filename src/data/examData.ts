@@ -132,7 +132,79 @@ export const SHENLUN_MODULES: ExamModule[] = [
 ];
 
 export const STUDY_PHASES = [
-  { phase: 1, name: '基础阶段', weeks: '1-4周', focus: '系统学习各模块知识点，建立知识框架' },
-  { phase: 2, name: '强化阶段', weeks: '5-8周', focus: '分模块刷题，总结错题，提升速度和正确率' },
-  { phase: 3, name: '冲刺阶段', weeks: '9-12周', focus: '全真模考，查漏补缺，调整答题策略' },
+  {
+    phase: 1,
+    name: '基础阶段',
+    weeks: '第 1-4 周',
+    hours: '48h',
+    focus: '系统过一遍行测五大模块 + 申论五种题型，不求快，求理解',
+    daily: '行测 1h 听课/看讲义 + 申论 1h 读材料学方法',
+  },
+  {
+    phase: 2,
+    name: '强化阶段',
+    weeks: '第 5-8 周',
+    hours: '56h',
+    focus: '分模块刷题提速，建立错题本，申论开始限时练小题',
+    daily: '行测刷题 1h + 申论小题/素材 1h，周末加练',
+  },
+  {
+    phase: 3,
+    name: '冲刺阶段',
+    weeks: '第 9-12 周',
+    hours: '76h',
+    focus: '每周 1 套全真模考，查漏补缺，固化答题顺序和时间分配',
+    daily: '平日复盘 2h，周末模考 2h + 申论批改',
+  },
+];
+
+/** 工作日每日 2 小时安排（周一至周五） */
+export const WEEKDAY_SCHEDULE = [
+  { day: '周一', xingce: '资料分析刷题 20 题 + 速算练习', shenlun: '归纳概括 1 道（限时 15 分钟）', tip: '资料分析是提分关键，先练手感' },
+  { day: '周二', xingce: '判断推理 30 题（图形+类比+定义）', shenlun: '精读人民日报评论 1 篇，摘抄金句', tip: '类比和定义题争取全对' },
+  { day: '周三', xingce: '言语理解 30 题 + 成语积累', shenlun: '综合分析 1 道（限时 20 分钟）', tip: '言语靠积累，错题记成语辨析' },
+  { day: '周四', xingce: '资料分析 20 题（限时 25 分钟）', shenlun: '提出对策 1 道（限时 15 分钟）', tip: '资料分析限时训练，培养考场节奏' },
+  { day: '周五', xingce: '数量关系 10 题 + 常识 20 题', shenlun: '贯彻执行 1 道 + 回顾本周错题', tip: '数量只做简单题，常识利用碎片时间' },
+];
+
+/** 周末安排（同样 2h/天，内容不同） */
+export const WEEKEND_SCHEDULE = [
+  { day: '周六', focus: '行测专项', content: '行测薄弱模块集中突破 1.5h + 错题整理 0.5h', tip: '针对本周错题最多的模块加练' },
+  { day: '周日', focus: '申论主攻', content: '申论小题 2 道 1h + 大作文列提纲或练开头 1h', tip: '在职党周日务必练申论，工作日很难写完整作文' },
+];
+
+/** 12 周详细周计划 */
+export const WEEKLY_PLAN = [
+  { week: 1, theme: '认识考试', xingce: '了解行测结构，资料分析入门（速算技巧）', shenlun: '申论考什么？归纳概括方法学习' },
+  { week: 2, theme: '判断+言语', xingce: '判断推理四大题型入门，言语主旨题方法', shenlun: '综合分析题型讲解 + 练 2 道' },
+  { week: 3, theme: '数量+常识', xingce: '数量关系六大题型（只做简单题），常识法律政治', shenlun: '提出对策 + 贯彻执行格式学习' },
+  { week: 4, theme: '基础小结', xingce: '行测分模块小测，找薄弱项', shenlun: '大作文五段三分式 + 列 1 篇提纲' },
+  { week: 5, theme: '资料强化', xingce: '资料分析每天 20 题，速算提速', shenlun: '小题限时训练，每天 1 道' },
+  { week: 6, theme: '判断强化', xingce: '判断推理每天 30 题，图形推理专项', shenlun: '素材积累周：每天摘抄 3 条金句' },
+  { week: 7, theme: '言语强化', xingce: '言语每天 30 题，逻辑填空成语本', shenlun: '大作文完整写 1 篇（周末）' },
+  { week: 8, theme: '强化小结', xingce: '行测限时模考 1 套（只做行测部分）', shenlun: '申论小题全套限时练' },
+  { week: 9, theme: '模考周 1', xingce: '周六全真模考行测', shenlun: '周日全真模考申论 + 对照答案' },
+  { week: 10, theme: '模考周 2', xingce: '第二套全真模考 + 错题深度复盘', shenlun: '大作文重写 1 篇（针对模考薄弱环节）' },
+  { week: 11, theme: '模考周 3', xingce: '第三套全真模考，调整做题顺序', shenlun: '申论小题速度训练（每题 10 分钟内）' },
+  { week: 12, theme: '考前冲刺', xingce: '保持手感：每天 30 题维持状态', shenlun: '回顾素材本 + 默写大作文框架' },
+];
+
+/** 在职备考专属建议 */
+export const WORKING_TIPS = [
+  { title: '通勤碎片时间', content: '听时政音频、刷常识题 APP、回顾错题本（每天额外 30 分钟）' },
+  { title: '午休 20 分钟', content: '看一篇人民日报评论或背 5 个成语辨析' },
+  { title: '保证睡眠', content: '在职党切忌熬夜，每天 2 小时高效学习 > 4 小时低效耗时间' },
+  { title: '周末是主战场', content: '工作日保持手感，周末集中模考和写申论大作文' },
+  { title: '请假策略', content: '考前 1 周如有年假，建议请 2-3 天做最后冲刺模考' },
+];
+
+/** 180 小时时间分配 */
+export const HOUR_ALLOCATION = [
+  { module: '资料分析', hours: 36, percent: 20 },
+  { module: '判断推理', hours: 32, percent: 18 },
+  { module: '言语理解', hours: 28, percent: 16 },
+  { module: '申论小题', hours: 40, percent: 22 },
+  { module: '申论大作文', hours: 24, percent: 13 },
+  { module: '常识判断', hours: 12, percent: 7 },
+  { module: '数量关系', hours: 8, percent: 4 },
 ];

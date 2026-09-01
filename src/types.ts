@@ -50,3 +50,10 @@ export interface StudyState {
 export const TARGET_TOTAL = 160;
 export const TARGET_XINGCE = 85;
 export const TARGET_SHENLUN = 75;
+
+/** 在职备考计划参数 */
+export const PLAN_MONTHS = 3;
+export const PLAN_DAYS = 90;
+export const PLAN_WEEKS = 12;
+export const DAILY_HOURS = 2;
+export const TOTAL_TARGET_HOURS = PLAN_DAYS * DAILY_HOURS; // 180h
