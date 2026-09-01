@@ -865,6 +865,205 @@
   cursor: pointer;
 }
 
+.jump-materials.secondary-jump {
+  margin-top: -12px;
+  background: linear-gradient(135deg, #2980b9, #8e44ad);
+}
+
+.main.exam-mode {
+  max-width: 1280px;
+}
+
+.exam-hero h2 { margin-bottom: 8px; }
+.exam-hero p {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.paper-list { display: flex; flex-direction: column; gap: 12px; }
+
+.paper-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.paper-card h3 { margin: 6px 0 4px; font-size: 1.05rem; }
+.paper-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+.year-badge {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.paper-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.paper-card-actions button,
+.primary-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.status-pill {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.status-pill.status-写作中 { color: var(--xingce); background: rgba(41, 128, 185, 0.1); }
+.status-pill.status-已交卷 { color: var(--success); background: rgba(39, 174, 96, 0.12); }
+
+.exam-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.exam-toolbar-main h2 { font-size: 1.15rem; }
+.exam-toolbar-main p { color: var(--text-muted); font-size: 0.85rem; }
+
+.ghost-btn {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.exam-timer {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--xingce);
+}
+
+.exam-timer.over { color: var(--primary); }
+
+.exam-start-panel {
+  background: var(--surface);
+  padding: 32px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.exam-start-panel ol { margin: 16px 0 24px 20px; }
+
+.exam-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-height: 70vh;
+}
+
+.exam-pane {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.given-material { margin-bottom: 20px; }
+.given-material h4 { color: var(--primary); margin-bottom: 8px; }
+.given-material p {
+  margin-bottom: 10px;
+  text-indent: 2em;
+  line-height: 1.75;
+}
+
+.q-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.q-tabs button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.q-tabs button.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.q-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.q-prompt { margin-bottom: 12px; line-height: 1.7; }
+
+.question-block textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.word-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 6px 0 12px;
+}
+
+.reference-box {
+  background: #f8f4ef;
+  border-left: 3px solid var(--shenlun);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.reference-box pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.exam-submit-row { margin-top: 16px; }
+
+@media (max-width: 900px) {
+  .exam-split { grid-template-columns: 1fr; }
+  .exam-pane { max-height: none; }
+  .paper-card { flex-direction: column; align-items: flex-start; }
+}
+
 /* Materials */
 .materials-page h2 {
   font-size: 1.4rem;

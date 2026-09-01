@@ -69,7 +69,53 @@ export interface StudyState {
   studyLogs: StudyLog[];
   startDate: string;
   notebook: NotebookEntry[];
+  examAttempts: Record<string, ExamAttempt>;
 }
+
+export type ShenlunQuestionType = 'guina' | 'fenxi' | 'duice' | 'guanche' | 'zuowen';
+
+export interface ShenlunMaterial {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface ShenlunQuestion {
+  id: string;
+  index: number;
+  type: ShenlunQuestionType;
+  prompt: string;
+  score: number;
+  wordLimit: string;
+  reference: string;
+}
+
+export interface ShenlunPaper {
+  id: string;
+  year: number;
+  title: string;
+  subtitle: string;
+  durationMin: number;
+  totalScore: number;
+  materials: ShenlunMaterial[];
+  questions: ShenlunQuestion[];
+}
+
+export interface ExamAttempt {
+  paperId: string;
+  answers: Record<string, string>;
+  startedAt: string;
+  submittedAt?: string;
+  selfScore?: number;
+}
+
+export const QUESTION_TYPE_LABELS: Record<ShenlunQuestionType, string> = {
+  guina: '归纳概括',
+  fenxi: '综合分析',
+  duice: '提出对策',
+  guanche: '贯彻执行',
+  zuowen: '申发论述',
+};
 
 export const TARGET_TOTAL = 160;
 export const TARGET_XINGCE = 85;
