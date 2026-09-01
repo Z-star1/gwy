@@ -1,0 +1,32 @@
+:root {
+  --bg: #f5f3ef;
+  --surface: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6b7280;
+  --primary: #c0392b;
+  --primary-light: #e74c3c;
+  --xingce: #2980b9;
+  --shenlun: #8e44ad;
+  --success: #27ae60;
+  --border: #e5e2dc;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
