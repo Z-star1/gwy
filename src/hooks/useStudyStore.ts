@@ -27,6 +27,7 @@ function defaultState(): StudyState {
     studyLogs: [],
     startDate: new Date().toISOString().split('T')[0],
     notebook: [],
+    examAttempts: {},
   };
 }
 
@@ -43,6 +44,7 @@ function loadState(): StudyState {
       scoreRecords: parsed.scoreRecords ?? [],
       studyLogs: parsed.studyLogs ?? [],
       notebook: parsed.notebook ?? [],
+      examAttempts: parsed.examAttempts ?? {},
       startDate: parsed.startDate ?? defaults.startDate,
     };
   } catch {
@@ -165,6 +167,62 @@ export function useStudyStore() {
     [],
   );
 
+  const startExam = useCallback((paperId: string) => {
+    setState((prev) => {
+      if (prev.examAttempts[paperId]) return prev;
+      return {
+        ...prev,
+        examAttempts: {
+          ...prev.examAttempts,
+          [paperId]: {
+            paperId,
+            answers: {},
+            startedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  }, []);
+
+  const saveExamAnswer = useCallback((paperId: string, questionId: string, text: string) => {
+    setState((prev) => {
+      const current = prev.examAttempts[paperId];
+      if (!current || current.submittedAt) return prev;
+      return {
+        ...prev,
+        examAttempts: {
+          ...prev.examAttempts,
+          [paperId]: {
+            ...current,
+            answers: { ...current.answers, [questionId]: text },
+          },
+        },
+      };
+    });
+  }, []);
+
+  const submitExam = useCallback((paperId: string) => {
+    setState((prev) => {
+      const current = prev.examAttempts[paperId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        examAttempts: {
+          ...prev.examAttempts,
+          [paperId]: { ...current, submittedAt: new Date().toISOString() },
+        },
+      };
+    });
+  }, []);
+
+  const resetExam = useCallback((paperId: string) => {
+    setState((prev) => {
+      const next = { ...prev.examAttempts };
+      delete next[paperId];
+      return { ...prev, examAttempts: next };
+    });
+  }, []);
+
   const latestMock = state.scoreRecords.find((r) => r.type === 'mock');
   const bestMock = state.scoreRecords
     .filter((r) => r.type === 'mock')
@@ -190,6 +248,10 @@ export function useStudyStore() {
     deleteNotebookEntry,
     isMaterialSaved,
     saveMaterialToNotebook,
+    startExam,
+    saveExamAnswer,
+    submitExam,
+    resetExam,
     latestMock,
     bestMock,
     totalHours,

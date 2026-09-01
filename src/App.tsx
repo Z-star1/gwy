@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ExamBank } from './components/ExamBank';
 import { Dashboard } from './components/Dashboard';
 import { DailyPlan } from './components/DailyPlan';
 import { MaterialsPage } from './components/MaterialsPage';
@@ -9,10 +10,11 @@ import { XINGCE_MODULES, SHENLUN_MODULES } from './data/examData';
 import { useStudyStore } from './hooks/useStudyStore';
 import './App.css';
 
-type Tab = 'overview' | 'xingce' | 'shenlun' | 'scores' | 'materials' | 'plan';
+type Tab = 'overview' | 'xingce' | 'shenlun' | 'scores' | 'materials' | 'plan' | 'exams';
 
 const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'overview', label: '总览', short: '总览' },
+  { id: 'exams', label: '题库', short: '题库' },
   { id: 'materials', label: '素材', short: '素材' },
   { id: 'xingce', label: '行测', short: '行测' },
   { id: 'shenlun', label: '申论', short: '申论' },
@@ -20,7 +22,7 @@ const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'scores', label: '模考', short: '模考' },
 ];
 
-const MOBILE_TABS: Tab[] = ['overview', 'materials', 'xingce', 'shenlun', 'plan'];
+const MOBILE_TABS: Tab[] = ['overview', 'exams', 'materials', 'shenlun', 'plan'];
 
 function daysSince(dateStr: string) {
   const start = new Date(dateStr);
@@ -61,7 +63,7 @@ export default function App() {
 
       <InstallBanner />
 
-      <main className="main">
+      <main className={`main ${tab === 'exams' ? 'exam-mode' : ''}`}>
         {(tab === 'overview' || tab === 'xingce' || tab === 'shenlun') && (
           <Dashboard
             latestMock={store.latestMock}
@@ -77,9 +79,14 @@ export default function App() {
         {tab === 'overview' && <DailyPlan />}
 
         {tab === 'overview' && (
-          <button type="button" className="jump-materials" onClick={() => setTab('materials')}>
-            打开素材库 · 看金句案例，记进积累本
-          </button>
+          <>
+            <button type="button" className="jump-materials" onClick={() => setTab('exams')}>
+              电脑做申论 · 按年份打开模拟卷
+            </button>
+            <button type="button" className="jump-materials secondary-jump" onClick={() => setTab('materials')}>
+              打开素材库 · 看金句案例，记进积累本
+            </button>
+          </>
         )}
 
         {tab === 'overview' && (
@@ -121,15 +128,30 @@ export default function App() {
         )}
 
         {tab === 'shenlun' && (
-          <ModuleSection
-            title="申论"
-            icon="✍️"
-            modules={SHENLUN_MODULES}
-            progress={store.state.moduleProgress}
-            onStatusChange={store.updateModuleStatus}
-            onAddHours={store.addStudyHours}
-            expandedId={expandedId}
-            onToggleExpand={toggleExpand}
+          <>
+            <button type="button" className="jump-materials" onClick={() => setTab('exams')}>
+              电脑做申论模拟卷 · 按年份练习行政执法卷
+            </button>
+            <ModuleSection
+              title="申论"
+              icon="✍️"
+              modules={SHENLUN_MODULES}
+              progress={store.state.moduleProgress}
+              onStatusChange={store.updateModuleStatus}
+              onAddHours={store.addStudyHours}
+              expandedId={expandedId}
+              onToggleExpand={toggleExpand}
+            />
+          </>
+        )}
+
+        {tab === 'exams' && (
+          <ExamBank
+            attempts={store.state.examAttempts}
+            onStart={store.startExam}
+            onSaveAnswer={store.saveExamAnswer}
+            onSubmit={store.submitExam}
+            onReset={store.resetExam}
           />
         )}
 
