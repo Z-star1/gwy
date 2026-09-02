@@ -95,6 +95,8 @@ export interface ShenlunPaper {
   year: number;
   title: string;
   subtitle: string;
+  /** 命题风格标签，不是某省真题 */
+  style: string;
   durationMin: number;
   totalScore: number;
   materials: ShenlunMaterial[];

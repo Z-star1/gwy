@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { PAPER_YEARS, SHENLUN_PAPERS, getPaper } from '../data/shenlunPapers';
+import { PAPER_STYLES, PAPER_YEARS, SHENLUN_PAPERS, getPaper } from '../data/shenlunPapers';
 import { OFFICIAL_LINKS, ZHENTI_INDEX } from '../data/zhentiIndex';
 import type { ExamAttempt, ShenlunPaper } from '../types';
 import { QUESTION_TYPE_LABELS } from '../types';
@@ -26,11 +26,15 @@ interface Props {
 
 export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }: Props) {
   const [year, setYear] = useState<number | 'all'>('all');
+  const [style, setStyle] = useState<string | 'all'>('all');
   const [paperId, setPaperId] = useState<string | null>(null);
 
   const papers = useMemo(
-    () => SHENLUN_PAPERS.filter((p) => year === 'all' || p.year === year),
-    [year],
+    () =>
+      SHENLUN_PAPERS.filter(
+        (p) => (year === 'all' || p.year === year) && (style === 'all' || p.style === style),
+      ),
+    [year, style],
   );
 
   const paper = paperId ? getPaper(paperId) : undefined;
@@ -54,7 +58,9 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
         <h2>申论题库（电脑作答）</h2>
         <p>
           按年份练习行政执法类申论。官方真题全文受版权保护，<strong>不能放进本站在线作答</strong>。
-          下面先给出真题年份索引和正规获取渠道；需要练手感时，用本站模拟卷（左侧材料、右侧答题）。
+          下面先给出真题年份索引和正规获取渠道。在线作答的是<strong>原创模拟卷</strong>：
+          借鉴国考及浙、粤、苏、鲁、川渝、京津冀等地常见题型结构与主题偏好，材料全部新写，
+          <strong>不是把各地真题剪贴拼凑</strong>（那样同样侵权）。
         </p>
       </div>
 
@@ -92,7 +98,23 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
         </div>
       </div>
 
-      <h3 className="subsection-title">本站可作答：模拟卷</h3>
+      <h3 className="subsection-title">本站可作答：模拟卷（{papers.length} 套）</h3>
+
+      <div className="chip-row">
+        <button type="button" className={`chip ${style === 'all' ? 'active' : ''}`} onClick={() => setStyle('all')}>
+          全部风格
+        </button>
+        {PAPER_STYLES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            className={`chip ${style === s ? 'active' : ''}`}
+            onClick={() => setStyle(s)}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
 
       <div className="chip-row">
         <button type="button" className={`chip ${year === 'all' ? 'active' : ''}`} onClick={() => setYear('all')}>
@@ -119,7 +141,7 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
               <div>
                 <span className="year-badge">{p.year}</span>
                 <h3>{p.title}</h3>
-                <p>{p.subtitle} · {p.durationMin}分钟 · {p.totalScore}分 · {p.questions.length}题</p>
+                <p>{p.style} · {p.subtitle} · {p.durationMin}分钟 · {p.totalScore}分 · {p.questions.length}题</p>
               </div>
               <div className="paper-card-actions">
                 <span className={`status-pill status-${status}`}>{status}</span>
