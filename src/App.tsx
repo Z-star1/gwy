@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SkillGuide } from './components/SkillGuide';
 import { ExamBank } from './components/ExamBank';
 import { Dashboard } from './components/Dashboard';
 import { DailyPlan } from './components/DailyPlan';
@@ -10,11 +11,12 @@ import { XINGCE_MODULES, SHENLUN_MODULES } from './data/examData';
 import { useStudyStore } from './hooks/useStudyStore';
 import './App.css';
 
-type Tab = 'overview' | 'xingce' | 'shenlun' | 'scores' | 'materials' | 'plan' | 'exams';
+type Tab = 'overview' | 'xingce' | 'shenlun' | 'scores' | 'materials' | 'plan' | 'exams' | 'skills';
 
 const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'overview', label: '总览', short: '总览' },
   { id: 'exams', label: '题库', short: '题库' },
+  { id: 'skills', label: '技巧', short: '技巧' },
   { id: 'materials', label: '素材', short: '素材' },
   { id: 'xingce', label: '行测', short: '行测' },
   { id: 'shenlun', label: '申论', short: '申论' },
@@ -22,7 +24,7 @@ const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'scores', label: '模考', short: '模考' },
 ];
 
-const MOBILE_TABS: Tab[] = ['overview', 'exams', 'materials', 'shenlun', 'plan'];
+const MOBILE_TABS: Tab[] = ['overview', 'exams', 'skills', 'materials', 'plan'];
 
 function daysSince(dateStr: string) {
   const start = new Date(dateStr);
@@ -37,6 +39,7 @@ interface BeforeInstallPromptEvent extends Event {
 export default function App() {
   const [tab, setTab] = useState<Tab>('overview');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [skillSubject, setSkillSubject] = useState<'xingce' | 'shenlun'>('xingce');
   const store = useStudyStore();
 
   const toggleExpand = (id: string) => {
@@ -119,6 +122,16 @@ export default function App() {
             <button type="button" className="jump-materials" onClick={() => setTab('exams')}>
               电脑做行测练习 · 资料判断言语常识数量
             </button>
+            <button
+              type="button"
+              className="jump-materials secondary-jump"
+              onClick={() => {
+                setSkillSubject('xingce');
+                setTab('skills');
+              }}
+            >
+              行测各题型做题技巧
+            </button>
             <ModuleSection
               title="行测"
               icon="📝"
@@ -137,6 +150,16 @@ export default function App() {
             <button type="button" className="jump-materials" onClick={() => setTab('exams')}>
               电脑做申论模拟卷 · 按年份练习行政执法卷
             </button>
+            <button
+              type="button"
+              className="jump-materials secondary-jump"
+              onClick={() => {
+                setSkillSubject('shenlun');
+                setTab('skills');
+              }}
+            >
+              申论各题型作答技巧
+            </button>
             <ModuleSection
               title="申论"
               icon="✍️"
@@ -149,6 +172,8 @@ export default function App() {
             />
           </>
         )}
+
+        {tab === 'skills' && <SkillGuide key={skillSubject} initialSubject={skillSubject} />}
 
         {tab === 'exams' && (
           <ExamBank
