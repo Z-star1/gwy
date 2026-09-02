@@ -25,8 +25,11 @@ interface Props {
   onReset: (paperId: string) => void;
   xingceAttempts: Record<string, XingceAttempt>;
   onXingceAnswer: (setId: string, questionId: string, option: number) => void;
-  onXingceSubmit: (setId: string) => void;
+  onXingceSubmit: (setId: string, questionIds: string[]) => void;
   onXingceReset: (setId: string) => void;
+  wrongQuestionIds: string[];
+  initialSubject?: 'xingce' | 'shenlun';
+  initialXingceSet?: string | null;
 }
 
 export function ExamBank({
@@ -39,8 +42,11 @@ export function ExamBank({
   onXingceAnswer,
   onXingceSubmit,
   onXingceReset,
+  wrongQuestionIds,
+  initialSubject = 'xingce',
+  initialXingceSet = null,
 }: Props) {
-  const [subject, setSubject] = useState<'xingce' | 'shenlun'>('xingce');
+  const [subject, setSubject] = useState<'xingce' | 'shenlun'>(initialSubject);
   const [year, setYear] = useState<number | 'all'>('all');
   const [style, setStyle] = useState<string | 'all'>('all');
   const [paperId, setPaperId] = useState<string | null>(null);
@@ -85,6 +91,8 @@ export function ExamBank({
           onSaveAnswer={onXingceAnswer}
           onSubmit={onXingceSubmit}
           onReset={onXingceReset}
+          wrongQuestionIds={wrongQuestionIds}
+          initialSetId={initialXingceSet}
         />
       ) : (
         <>

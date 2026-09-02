@@ -1,5 +1,6 @@
 import { TARGET_TOTAL, TARGET_XINGCE, TARGET_SHENLUN, DAILY_HOURS, PLAN_DAYS, TOTAL_TARGET_HOURS } from '../types';
 import type { ScoreRecord } from '../types';
+import { addDays, daysUntil } from '../lib/dates';
 
 interface Props {
   latestMock?: ScoreRecord;
@@ -9,14 +10,21 @@ interface Props {
   totalModules: number;
   daysStudying: number;
   startDate: string;
+  examDate: string;
+  onExamDateChange: (date: string) => void;
+  todayCheckedHours: number;
 }
 
-function getRemainingDays(startDate: string) {
-  const start = new Date(startDate);
-  const end = new Date(start);
-  end.setDate(end.getDate() + PLAN_DAYS);
-  const now = new Date();
-  return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / 86400000));
+function countdown(startDate: string, examDate: string) {
+  if (examDate) {
+    const left = daysUntil(examDate);
+    if (left > 0) return { remainingDays: left, label: `距考试 ${left} 天` };
+    if (left === 0) return { remainingDays: 0, label: '今天考试' };
+    return { remainingDays: 0, label: '考试日已过，可改日期' };
+  }
+  const planEnd = addDays(startDate, PLAN_DAYS);
+  const left = Math.max(0, daysUntil(planEnd));
+  return { remainingDays: left, label: `距 90 天计划结束 ${left} 天` };
 }
 
 export function Dashboard({
@@ -27,14 +35,18 @@ export function Dashboard({
   totalModules,
   daysStudying,
   startDate,
+  examDate,
+  onExamDateChange,
+  todayCheckedHours,
 }: Props) {
   const currentTotal = latestMock ? latestMock.xingce + latestMock.shenlun : 0;
   const bestTotal = bestMock ? bestMock.xingce + bestMock.shenlun : 0;
   const scoreProgress = Math.min((bestTotal / TARGET_TOTAL) * 100, 100);
   const expectedHours = Math.min(daysStudying * DAILY_HOURS, TOTAL_TARGET_HOURS);
   const hourProgress = Math.min((totalHours / TOTAL_TARGET_HOURS) * 100, 100);
-  const remainingDays = getRemainingDays(startDate);
+  const { remainingDays, label } = countdown(startDate, examDate);
   const hoursGap = expectedHours - totalHours;
+  const todayDone = todayCheckedHours >= DAILY_HOURS;
 
   return (
     <section className="dashboard">
@@ -46,6 +58,19 @@ export function Dashboard({
         <p className="hero-plan">
           在职备考 · 每日 {DAILY_HOURS} 小时 · 三个月（{PLAN_DAYS} 天 / {TOTAL_TARGET_HOURS} 小时）
         </p>
+        <div className="exam-date-row">
+          <label>
+            考试日期
+            <input
+              type="date"
+              value={examDate}
+              onChange={(e) => onExamDateChange(e.target.value)}
+            />
+          </label>
+          <span className={`countdown-pill ${remainingDays <= 14 && examDate ? 'urgent' : ''}`}>
+            {label}
+          </span>
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -55,9 +80,9 @@ export function Dashboard({
           <span className="stat-sub">满分 200</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">今日应学</span>
-          <span className="stat-value">{DAILY_HOURS}h</span>
-          <span className="stat-sub">剩余 {remainingDays} 天</span>
+          <span className="stat-label">今日打卡</span>
+          <span className="stat-value">{todayCheckedHours}/{DAILY_HOURS}h</span>
+          <span className="stat-sub">{todayDone ? '今晚任务已完成' : `还差 ${DAILY_HOURS - todayCheckedHours} 小时`}</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">累计学习</span>

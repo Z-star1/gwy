@@ -1,20 +1,45 @@
 import { useState } from 'react';
 import { XINGCE_SETS, getXingceSet, questionsOfSet } from '../data/xingceQuestions';
-import type { XingceAttempt, XingceSet } from '../types';
+import type { XingceAttempt, XingceQuestion, XingceSet } from '../types';
 import { XINGCE_MODULE_LABELS } from '../types';
 
 const LETTERS = ['A', 'B', 'C', 'D'] as const;
+const WRONG_SET_ID = 'set-wrong';
 
 interface Props {
   attempts: Record<string, XingceAttempt>;
   onSaveAnswer: (setId: string, questionId: string, option: number) => void;
-  onSubmit: (setId: string) => void;
+  onSubmit: (setId: string, questionIds: string[]) => void;
   onReset: (setId: string) => void;
+  wrongQuestionIds: string[];
+  initialSetId?: string | null;
 }
 
-export function XingceBank({ attempts, onSaveAnswer, onSubmit, onReset }: Props) {
-  const [setId, setSetId] = useState<string | null>(null);
-  const set = setId ? getXingceSet(setId) : undefined;
+function wrongSet(ids: string[]): XingceSet {
+  return {
+    id: WRONG_SET_ID,
+    title: '错题本',
+    module: 'mixed',
+    minutes: Math.max(8, ids.length * 2),
+    questionIds: ids,
+  };
+}
+
+export function XingceBank({
+  attempts,
+  onSaveAnswer,
+  onSubmit,
+  onReset,
+  wrongQuestionIds,
+  initialSetId = null,
+}: Props) {
+  const [setId, setSetId] = useState<string | null>(initialSetId);
+
+  const set = setId === WRONG_SET_ID
+    ? wrongSet(wrongQuestionIds)
+    : setId
+      ? getXingceSet(setId)
+      : undefined;
 
   if (set) {
     return (
@@ -23,7 +48,7 @@ export function XingceBank({ attempts, onSaveAnswer, onSubmit, onReset }: Props)
         attempt={attempts[set.id]}
         onBack={() => setSetId(null)}
         onSaveAnswer={(qid, opt) => onSaveAnswer(set.id, qid, opt)}
-        onSubmit={() => onSubmit(set.id)}
+        onSubmit={(ids) => onSubmit(set.id, ids)}
         onReset={() => onReset(set.id)}
       />
     );
@@ -36,9 +61,33 @@ export function XingceBank({ attempts, onSaveAnswer, onSubmit, onReset }: Props)
         <p>
           原创练习题，覆盖资料、判断、言语、常识、数量。点选项即可作答，交卷后显示正确率和解析。
           <strong>不是国考真题原题</strong>（版权限制）。图形推理需看图，本站暂以定义、类比、逻辑为主。
+          答错的题会自动进入错题本，再做对可移出。
         </p>
       </div>
       <div className="paper-list">
+        <article className="paper-card wrong-card">
+          <div>
+            <span className="year-badge">错题本</span>
+            <h3>答错再练</h3>
+            <p>
+              {wrongQuestionIds.length > 0
+                ? `${wrongQuestionIds.length} 题待消化`
+                : '交卷后错题会出现在这里'}
+            </p>
+          </div>
+          <div className="paper-card-actions">
+            <span className={`status-pill ${wrongQuestionIds.length ? 'status-写作中' : ''}`}>
+              {wrongQuestionIds.length ? `${wrongQuestionIds.length} 题` : '暂无'}
+            </span>
+            <button
+              type="button"
+              disabled={wrongQuestionIds.length === 0}
+              onClick={() => setSetId(WRONG_SET_ID)}
+            >
+              {wrongQuestionIds.length ? '打开错题本' : '暂无错题'}
+            </button>
+          </div>
+        </article>
         {XINGCE_SETS.map((s) => {
           const att = attempts[s.id];
           const qs = questionsOfSet(s);
@@ -82,17 +131,28 @@ function XingceQuiz({
   attempt?: XingceAttempt;
   onBack: () => void;
   onSaveAnswer: (questionId: string, option: number) => void;
-  onSubmit: () => void;
+  onSubmit: (questionIds: string[]) => void;
   onReset: () => void;
 }) {
-  const questions = questionsOfSet(set);
+  const [questions] = useState<XingceQuestion[]>(() => questionsOfSet(set));
   const [index, setIndex] = useState(0);
   const submitted = Boolean(attempt?.submittedAt);
   const q = questions[index];
-  const chosen = attempt?.answers[q.id];
+  const chosen = q ? attempt?.answers[q.id] : undefined;
   const answers = attempt?.answers ?? {};
   const doneCount = questions.filter((item) => answers[item.id] !== undefined).length;
   const right = submitted ? questions.filter((item) => answers[item.id] === item.answer).length : 0;
+
+  if (!q) {
+    return (
+      <section className="exam-taker">
+        <header className="exam-toolbar">
+          <button type="button" className="ghost-btn" onClick={onBack}>← 返回行测题库</button>
+        </header>
+        <p>这套题暂时没有题目。</p>
+      </section>
+    );
+  }
 
   return (
     <section className="exam-taker">
@@ -179,7 +239,7 @@ function XingceQuiz({
               if (doneCount < questions.length && !window.confirm(`还有 ${questions.length - doneCount} 题未答，确定交卷？`)) {
                 return;
               }
-              onSubmit();
+              onSubmit(questions.map((item) => item.id));
             }}
           >
             交卷看解析

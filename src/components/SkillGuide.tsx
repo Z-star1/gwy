@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { SKILL_GUIDES } from '../data/skillGuides';
+import { SKILL_GUIDES, SKILL_TO_PRACTICE } from '../data/skillGuides';
 
 type Subject = 'xingce' | 'shenlun';
 
 interface Props {
   initialSubject?: Subject;
+  onPractice: (skillId: string) => void;
 }
 
-export function SkillGuide({ initialSubject = 'xingce' }: Props) {
+export function SkillGuide({ initialSubject = 'xingce', onPractice }: Props) {
   const [subject, setSubject] = useState<Subject>(initialSubject);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -70,6 +71,11 @@ export function SkillGuide({ initialSubject = 'xingce' }: Props) {
                 <li key={p}>{p}</li>
               ))}
             </ul>
+            {SKILL_TO_PRACTICE[active.id] && (
+              <button type="button" className="primary-btn skill-practice-btn" onClick={() => onPractice(active.id)}>
+                {SKILL_TO_PRACTICE[active.id].label}
+              </button>
+            )}
           </article>
         )}
       </div>

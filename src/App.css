@@ -557,6 +557,46 @@
   font-weight: 500;
 }
 
+.exam-date-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.exam-date-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.exam-date-row input[type='date'] {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.countdown-pill {
+  background: rgba(41, 128, 185, 0.12);
+  color: var(--xingce);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.countdown-pill.urgent {
+  background: rgba(192, 57, 43, 0.12);
+  color: var(--primary);
+}
+
 .progress-fill.hours {
   background: linear-gradient(90deg, #27ae60, #2ecc71);
 }
@@ -594,6 +634,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .daily-date {
@@ -618,6 +659,58 @@
 .daily-task {
   padding: 14px 16px;
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.daily-task.done .task-text {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.task-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+}
+
+.task-check input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.task-text {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.task-go {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--xingce);
+  font-weight: 600;
+}
+
+.daily-check-status {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.daily-check-status.done {
+  color: var(--success);
+  font-weight: 600;
 }
 
 .daily-task.xingce {
@@ -645,6 +738,60 @@
 
 .daily-task p {
   font-size: 0.95rem;
+}
+
+.skill-practice-btn {
+  margin-top: 20px;
+}
+
+.paper-card.wrong-card {
+  border-left: 4px solid var(--primary);
+}
+
+.paper-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.backup-bar {
+  margin: 32px 0 8px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.backup-bar h2 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.backup-bar p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 36rem;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.backup-msg {
+  width: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--success);
+}
+
+.backup-msg.error {
+  color: var(--primary);
 }
 
 .daily-tip {

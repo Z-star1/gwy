@@ -68,9 +68,12 @@ export interface StudyState {
   scoreRecords: ScoreRecord[];
   studyLogs: StudyLog[];
   startDate: string;
+  examDate: string;
   notebook: NotebookEntry[];
   examAttempts: Record<string, ExamAttempt>;
   xingceAttempts: Record<string, XingceAttempt>;
+  dailyChecks: Record<string, string[]>;
+  wrongQuestionIds: string[];
 }
 
 export type XingceModuleId = 'changshi' | 'yanyu' | 'shuliang' | 'panduan' | 'ziliao';

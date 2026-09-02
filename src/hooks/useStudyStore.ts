@@ -9,8 +9,12 @@ import type {
   StudyState,
 } from '../types';
 import { XINGCE_MODULES, SHENLUN_MODULES } from '../data/examData';
+import { questionsByIds } from '../data/xingceQuestions';
+import { checkInHours, localDateKey } from '../lib/dates';
 
 const STORAGE_KEY = 'gwy-study-state';
+const BACKUP_APP = 'gwy';
+const BACKUP_VERSION = 1;
 
 function createDefaultProgress(): Record<string, ModuleProgress> {
   const progress: Record<string, ModuleProgress> = {};
@@ -25,33 +29,54 @@ function defaultState(): StudyState {
     moduleProgress: createDefaultProgress(),
     scoreRecords: [],
     studyLogs: [],
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: localDateKey(),
+    examDate: '',
     notebook: [],
     examAttempts: {},
     xingceAttempts: {},
+    dailyChecks: {},
+    wrongQuestionIds: [],
+  };
+}
+
+function hydrateState(parsed: Partial<StudyState>): StudyState {
+  const defaults = defaultState();
+  return {
+    ...defaults,
+    ...parsed,
+    moduleProgress: { ...defaults.moduleProgress, ...parsed.moduleProgress },
+    scoreRecords: parsed.scoreRecords ?? [],
+    studyLogs: parsed.studyLogs ?? [],
+    notebook: parsed.notebook ?? [],
+    examAttempts: parsed.examAttempts ?? {},
+    xingceAttempts: parsed.xingceAttempts ?? {},
+    dailyChecks: parsed.dailyChecks ?? {},
+    wrongQuestionIds: Array.isArray(parsed.wrongQuestionIds) ? parsed.wrongQuestionIds : [],
+    startDate: parsed.startDate ?? defaults.startDate,
+    examDate: parsed.examDate ?? '',
   };
 }
 
 function loadState(): StudyState {
-  const defaults = defaultState();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw) as Partial<StudyState>;
-    return {
-      ...defaults,
-      ...parsed,
-      moduleProgress: { ...defaults.moduleProgress, ...parsed.moduleProgress },
-      scoreRecords: parsed.scoreRecords ?? [],
-      studyLogs: parsed.studyLogs ?? [],
-      notebook: parsed.notebook ?? [],
-      examAttempts: parsed.examAttempts ?? {},
-      xingceAttempts: parsed.xingceAttempts ?? {},
-      startDate: parsed.startDate ?? defaults.startDate,
-    };
+    if (!raw) return defaultState();
+    return hydrateState(JSON.parse(raw) as Partial<StudyState>);
   } catch {
-    return defaults;
+    return defaultState();
   }
+}
+
+function extractImportedState(raw: unknown): Partial<StudyState> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const obj = raw as Record<string, unknown>;
+  if (obj.app === BACKUP_APP && obj.state && typeof obj.state === 'object' && !Array.isArray(obj.state)) {
+    return obj.state as Partial<StudyState>;
+  }
+  if (obj.moduleProgress || obj.startDate || obj.xingceAttempts || obj.dailyChecks) {
+    return obj as Partial<StudyState>;
+  }
+  return null;
 }
 
 function saveState(state: StudyState) {
@@ -242,17 +267,64 @@ export function useStudyStore() {
     });
   }, []);
 
-  const submitXingce = useCallback((setId: string) => {
+  const submitXingce = useCallback((setId: string, questionIds: string[]) => {
     setState((prev) => {
       const current = prev.xingceAttempts[setId] ?? { setId, answers: {} };
+      const qs = questionsByIds(questionIds);
+      const newlyWrong: string[] = [];
+      const newlyRight: string[] = [];
+      for (const q of qs) {
+        if (current.answers[q.id] === q.answer) newlyRight.push(q.id);
+        else newlyWrong.push(q.id);
+      }
+      const keep = prev.wrongQuestionIds.filter((id) => !newlyRight.includes(id));
       return {
         ...prev,
+        wrongQuestionIds: [...new Set([...keep, ...newlyWrong])],
         xingceAttempts: {
           ...prev.xingceAttempts,
           [setId]: { ...current, submittedAt: new Date().toISOString() },
         },
       };
     });
+  }, []);
+
+  const setExamDate = useCallback((examDate: string) => {
+    setState((prev) => ({ ...prev, examDate }));
+  }, []);
+
+  const toggleDailyCheck = useCallback((taskId: string) => {
+    const date = localDateKey();
+    setState((prev) => {
+      const current = prev.dailyChecks[date] ?? [];
+      const next = current.includes(taskId)
+        ? current.filter((id) => id !== taskId)
+        : [...current, taskId];
+      return { ...prev, dailyChecks: { ...prev.dailyChecks, [date]: next } };
+    });
+  }, []);
+
+  const exportBackup = useCallback(() => {
+    const payload = {
+      app: BACKUP_APP,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      state,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gwy-backup-${localDateKey()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [state]);
+
+  const importBackup = useCallback((raw: unknown) => {
+    const extracted = extractImportedState(raw);
+    if (!extracted) return false;
+    setState(hydrateState(extracted));
+    return true;
   }, []);
 
   const resetXingce = useCallback((setId: string) => {
@@ -272,7 +344,11 @@ export function useStudyStore() {
       return best;
     }, null);
 
-  const totalHours = Object.values(state.moduleProgress).reduce((s, p) => s + p.hoursSpent, 0);
+  const moduleHours = Object.values(state.moduleProgress).reduce((s, p) => s + p.hoursSpent, 0);
+  const checkedHours = Object.values(state.dailyChecks).reduce((s, tasks) => s + checkInHours(tasks), 0);
+  const totalHours = moduleHours + checkedHours;
+  const todayChecked = state.dailyChecks[localDateKey()] ?? [];
+  const todayCheckedHours = checkInHours(todayChecked);
   const masteredCount = Object.values(state.moduleProgress).filter((p) => p.status === 'mastered').length;
   const totalModules = XINGCE_MODULES.length + SHENLUN_MODULES.length;
 
@@ -295,6 +371,12 @@ export function useStudyStore() {
     saveXingceAnswer,
     submitXingce,
     resetXingce,
+    setExamDate,
+    toggleDailyCheck,
+    exportBackup,
+    importBackup,
+    todayChecked,
+    todayCheckedHours,
     latestMock,
     bestMock,
     totalHours,

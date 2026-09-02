@@ -477,3 +477,7 @@ export function getXingceSet(id: string) {
 export function questionsOfSet(set: XingceSet) {
   return set.questionIds.map((id) => QMAP[id]).filter(Boolean);
 }
+
+export function questionsByIds(ids: string[]) {
+  return ids.map((id) => QMAP[id]).filter(Boolean);
+}
