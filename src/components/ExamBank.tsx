@@ -1,7 +1,8 @@
+import { XingceBank } from './XingceBank';
 import { useEffect, useMemo, useState } from 'react';
 import { PAPER_STYLES, PAPER_YEARS, SHENLUN_PAPERS, getPaper } from '../data/shenlunPapers';
 import { OFFICIAL_LINKS, ZHENTI_INDEX } from '../data/zhentiIndex';
-import type { ExamAttempt, ShenlunPaper } from '../types';
+import type { ExamAttempt, ShenlunPaper, XingceAttempt } from '../types';
 import { QUESTION_TYPE_LABELS } from '../types';
 
 function countChars(text: string) {
@@ -22,9 +23,30 @@ interface Props {
   onSaveAnswer: (paperId: string, questionId: string, text: string) => void;
   onSubmit: (paperId: string) => void;
   onReset: (paperId: string) => void;
+  xingceAttempts: Record<string, XingceAttempt>;
+  onXingceAnswer: (setId: string, questionId: string, option: number) => void;
+  onXingceSubmit: (setId: string, questionIds: string[]) => void;
+  onXingceReset: (setId: string) => void;
+  wrongQuestionIds: string[];
+  initialSubject?: 'xingce' | 'shenlun';
+  initialXingceSet?: string | null;
 }
 
-export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }: Props) {
+export function ExamBank({
+  attempts,
+  onStart,
+  onSaveAnswer,
+  onSubmit,
+  onReset,
+  xingceAttempts,
+  onXingceAnswer,
+  onXingceSubmit,
+  onXingceReset,
+  wrongQuestionIds,
+  initialSubject = 'xingce',
+  initialXingceSet = null,
+}: Props) {
+  const [subject, setSubject] = useState<'xingce' | 'shenlun'>(initialSubject);
   const [year, setYear] = useState<number | 'all'>('all');
   const [style, setStyle] = useState<string | 'all'>('all');
   const [paperId, setPaperId] = useState<string | null>(null);
@@ -54,6 +76,26 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
 
   return (
     <section className="exam-bank">
+      <div className="inner-tabs" role="tablist">
+        <button type="button" className={subject === 'xingce' ? 'active' : ''} onClick={() => { setSubject('xingce'); setPaperId(null); }}>
+          行测
+        </button>
+        <button type="button" className={subject === 'shenlun' ? 'active' : ''} onClick={() => setSubject('shenlun')}>
+          申论
+        </button>
+      </div>
+
+      {subject === 'xingce' ? (
+        <XingceBank
+          attempts={xingceAttempts}
+          onSaveAnswer={onXingceAnswer}
+          onSubmit={onXingceSubmit}
+          onReset={onXingceReset}
+          wrongQuestionIds={wrongQuestionIds}
+          initialSetId={initialXingceSet}
+        />
+      ) : (
+        <>
       <div className="exam-hero">
         <h2>申论题库（电脑作答）</h2>
         <p>
@@ -153,6 +195,8 @@ export function ExamBank({ attempts, onStart, onSaveAnswer, onSubmit, onReset }:
           );
         })}
       </div>
+        </>
+      )}
     </section>
   );
 }
