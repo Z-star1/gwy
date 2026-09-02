@@ -1,11 +1,13 @@
 import type { ShenlunPaper } from '../types';
+import { REGIONAL_SHENLUN_PAPERS } from './regionalShenlunPapers';
 
-export const SHENLUN_PAPERS: ShenlunPaper[] = [
+const GUOKAO_STYLE_PAPERS: ShenlunPaper[] = [
   {
     id: 'sl-2026-zhifa',
     year: 2026,
     title: '2026年 行政执法类申论模拟卷',
     subtitle: '主题：过罚相当与文明执法',
+    style: '国考风格',
     durationMin: 180,
     totalScore: 100,
     materials: [
@@ -90,6 +92,7 @@ export const SHENLUN_PAPERS: ShenlunPaper[] = [
     year: 2025,
     title: '2025年 行政执法类申论模拟卷',
     subtitle: '主题：重复检查与综合监管',
+    style: '国考风格',
     durationMin: 180,
     totalScore: 100,
     materials: [
@@ -164,6 +167,7 @@ export const SHENLUN_PAPERS: ShenlunPaper[] = [
     year: 2024,
     title: '2024年 行政执法类申论模拟卷',
     subtitle: '主题：非现场执法与权利保障',
+    style: '国考风格',
     durationMin: 180,
     totalScore: 100,
     materials: [
@@ -234,6 +238,7 @@ export const SHENLUN_PAPERS: ShenlunPaper[] = [
     year: 2023,
     title: '2023年 行政执法类申论模拟卷',
     subtitle: '主题：乡镇赋权与基层执法能力',
+    style: '国考风格',
     durationMin: 180,
     totalScore: 100,
     materials: [
@@ -302,6 +307,7 @@ export const SHENLUN_PAPERS: ShenlunPaper[] = [
     year: 2022,
     title: '2022年 行政执法类申论模拟卷',
     subtitle: '主题：谁执法谁普法',
+    style: '国考风格',
     durationMin: 180,
     totalScore: 100,
     materials: [
@@ -362,7 +368,14 @@ export const SHENLUN_PAPERS: ShenlunPaper[] = [
   },
 ];
 
+export const SHENLUN_PAPERS: ShenlunPaper[] = [
+  ...GUOKAO_STYLE_PAPERS,
+  ...REGIONAL_SHENLUN_PAPERS,
+];
+
 export const PAPER_YEARS = [...new Set(SHENLUN_PAPERS.map((p) => p.year))].sort((a, b) => b - a);
+
+export const PAPER_STYLES = [...new Set(SHENLUN_PAPERS.map((p) => p.style))];
 
 export function getPaper(id: string) {
   return SHENLUN_PAPERS.find((p) => p.id === id);
