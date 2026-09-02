@@ -28,6 +28,7 @@ function defaultState(): StudyState {
     startDate: new Date().toISOString().split('T')[0],
     notebook: [],
     examAttempts: {},
+    xingceAttempts: {},
   };
 }
 
@@ -45,6 +46,7 @@ function loadState(): StudyState {
       studyLogs: parsed.studyLogs ?? [],
       notebook: parsed.notebook ?? [],
       examAttempts: parsed.examAttempts ?? {},
+      xingceAttempts: parsed.xingceAttempts ?? {},
       startDate: parsed.startDate ?? defaults.startDate,
     };
   } catch {
@@ -223,6 +225,44 @@ export function useStudyStore() {
     });
   }, []);
 
+  const saveXingceAnswer = useCallback((setId: string, questionId: string, option: number) => {
+    setState((prev) => {
+      const current = prev.xingceAttempts[setId] ?? { setId, answers: {} };
+      if (current.submittedAt) return prev;
+      return {
+        ...prev,
+        xingceAttempts: {
+          ...prev.xingceAttempts,
+          [setId]: {
+            ...current,
+            answers: { ...current.answers, [questionId]: option },
+          },
+        },
+      };
+    });
+  }, []);
+
+  const submitXingce = useCallback((setId: string) => {
+    setState((prev) => {
+      const current = prev.xingceAttempts[setId] ?? { setId, answers: {} };
+      return {
+        ...prev,
+        xingceAttempts: {
+          ...prev.xingceAttempts,
+          [setId]: { ...current, submittedAt: new Date().toISOString() },
+        },
+      };
+    });
+  }, []);
+
+  const resetXingce = useCallback((setId: string) => {
+    setState((prev) => {
+      const next = { ...prev.xingceAttempts };
+      delete next[setId];
+      return { ...prev, xingceAttempts: next };
+    });
+  }, []);
+
   const latestMock = state.scoreRecords.find((r) => r.type === 'mock');
   const bestMock = state.scoreRecords
     .filter((r) => r.type === 'mock')
@@ -252,6 +292,9 @@ export function useStudyStore() {
     saveExamAnswer,
     submitExam,
     resetExam,
+    saveXingceAnswer,
+    submitXingce,
+    resetXingce,
     latestMock,
     bestMock,
     totalHours,

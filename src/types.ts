@@ -70,7 +70,44 @@ export interface StudyState {
   startDate: string;
   notebook: NotebookEntry[];
   examAttempts: Record<string, ExamAttempt>;
+  xingceAttempts: Record<string, XingceAttempt>;
 }
+
+export type XingceModuleId = 'changshi' | 'yanyu' | 'shuliang' | 'panduan' | 'ziliao';
+
+export interface XingceQuestion {
+  id: string;
+  module: XingceModuleId;
+  kind: string;
+  stem: string;
+  material?: string;
+  options: [string, string, string, string];
+  answer: 0 | 1 | 2 | 3;
+  explanation: string;
+}
+
+export interface XingceSet {
+  id: string;
+  title: string;
+  module: XingceModuleId | 'mixed';
+  minutes: number;
+  questionIds: string[];
+}
+
+export interface XingceAttempt {
+  setId: string;
+  answers: Record<string, number>;
+  submittedAt?: string;
+}
+
+export const XINGCE_MODULE_LABELS: Record<XingceModuleId | 'mixed', string> = {
+  ziliao: '资料分析',
+  panduan: '判断推理',
+  yanyu: '言语理解',
+  changshi: '常识判断',
+  shuliang: '数量关系',
+  mixed: '混合练习',
+};
 
 export type ShenlunQuestionType = 'guina' | 'fenxi' | 'duice' | 'guanche' | 'zuowen';
 

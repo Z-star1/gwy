@@ -115,16 +115,21 @@ export default function App() {
         )}
 
         {tab === 'xingce' && (
-          <ModuleSection
-            title="行测"
-            icon="📝"
-            modules={XINGCE_MODULES}
-            progress={store.state.moduleProgress}
-            onStatusChange={store.updateModuleStatus}
-            onAddHours={store.addStudyHours}
-            expandedId={expandedId}
-            onToggleExpand={toggleExpand}
-          />
+          <>
+            <button type="button" className="jump-materials" onClick={() => setTab('exams')}>
+              电脑做行测练习 · 资料判断言语常识数量
+            </button>
+            <ModuleSection
+              title="行测"
+              icon="📝"
+              modules={XINGCE_MODULES}
+              progress={store.state.moduleProgress}
+              onStatusChange={store.updateModuleStatus}
+              onAddHours={store.addStudyHours}
+              expandedId={expandedId}
+              onToggleExpand={toggleExpand}
+            />
+          </>
         )}
 
         {tab === 'shenlun' && (
@@ -152,6 +157,10 @@ export default function App() {
             onSaveAnswer={store.saveExamAnswer}
             onSubmit={store.submitExam}
             onReset={store.resetExam}
+            xingceAttempts={store.state.xingceAttempts}
+            onXingceAnswer={store.saveXingceAnswer}
+            onXingceSubmit={store.submitXingce}
+            onXingceReset={store.resetXingce}
           />
         )}
 
