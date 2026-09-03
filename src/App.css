@@ -1207,7 +1207,7 @@
 
 .skill-layout {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 220px 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -1222,18 +1222,33 @@
 
 .skill-nav button {
   text-align: left;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 12px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 8px;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.skill-nav button em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .skill-nav button.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+}
+
+.skill-nav button.active em {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .skill-detail {
@@ -1255,6 +1270,92 @@
   margin-bottom: 16px;
 }
 
+.skill-subs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 20px;
+}
+
+.skill-subs button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.skill-subs button.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.skill-sub-title {
+  margin-top: 0;
+}
+
+.skill-spot {
+  background: var(--bg);
+  border-left: 3px solid var(--primary);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 12px 0 8px;
+}
+
+.skill-spot strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.skill-spot p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.skill-map-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: -4px 0 10px;
+}
+
+.skill-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.skill-map button {
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 72px;
+}
+
+.skill-map button:hover {
+  border-color: var(--primary);
+}
+
+.skill-map button strong {
+  font-size: 0.95rem;
+}
+
+.skill-map button span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .skill-detail h4 {
   margin: 16px 0 8px;
   font-size: 1rem;
@@ -1274,6 +1375,16 @@
   color: #9b2c2c;
 }
 
+.skill-templates li {
+  background: var(--bg);
+  padding: 8px 10px;
+  border-radius: 6px;
+  list-style: none;
+  margin-left: -20px;
+  font-family: ui-monospace, 'PingFang SC', monospace;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .skill-layout {
     grid-template-columns: 1fr;
@@ -1284,9 +1395,22 @@
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .skill-nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-width: 132px;
+  }
+
+  .skill-subs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .skill-subs button {
     flex: 0 0 auto;
     white-space: nowrap;
   }
