@@ -1,6 +1,6 @@
-import type { Material } from '../types';
+import type { Material, ShenlunQuestionType } from '../types';
 
-export const MATERIALS: Material[] = [
+const MATERIAL_SEED: Material[] = [
   {
     id: 'jj-01',
     category: 'jinju',
@@ -612,3 +612,52 @@ export const MATERIALS: Material[] = [
     tags: ['行政执法', '公正', '概括'],
   },
 ];
+
+function inferShenlunTypes(m: Material): ShenlunQuestionType[] {
+  if (m.shenlunTypes?.length) return m.shenlunTypes;
+
+  const blob = `${m.title} ${m.content} ${m.usage} ${m.tags.join(' ')}`;
+  const types = new Set<ShenlunQuestionType>();
+
+  if (/概括|总括|框架|分类|特点|问题清单|乡村振兴二十字/.test(blob)) types.add('guina');
+  if (/综合分析|评析|怎么看|辩证|对立|理解这句话|力度与温度|过罚相当|包容不是/.test(blob)) types.add('fenxi');
+  if (/对策|建议|怎么做|落地|抓手|清单|三项制度|裁量|培训|机制/.test(blob)) types.add('duice');
+  if (/通知|方案|讲话|倡议|汇报|短评|文种|提纲|宣传/.test(blob)) types.add('guanche');
+  if (/大作文|分论点|开头|结尾|论证|立意|总论|作文/.test(blob)) types.add('zuowen');
+
+  if (m.category === 'jinju' || m.category === 'anli') {
+    types.add('zuowen');
+    types.add('fenxi');
+  }
+  if (m.category === 'zhengce') {
+    types.add('duice');
+    types.add('zuowen');
+    types.add('guina');
+  }
+  if (m.tags.includes('行政执法')) {
+    types.add('duice');
+    types.add('fenxi');
+    types.add('zuowen');
+  }
+  if (m.tags.includes('框架')) {
+    types.add('guina');
+    types.add('duice');
+  }
+  if (m.category === 'chengyu' && m.tags.includes('行政执法')) {
+    types.add('guina');
+    types.add('fenxi');
+    types.add('zuowen');
+  }
+  if (m.category === 'chengyu' && !m.tags.includes('行政执法')) {
+    // 言语成语也可作作文润色，但主战场不在申论小题
+    types.add('zuowen');
+  }
+
+  if (types.size === 0) types.add('zuowen');
+  return [...types];
+}
+
+export const MATERIALS: Material[] = MATERIAL_SEED.map((m) => ({
+  ...m,
+  shenlunTypes: inferShenlunTypes(m),
+}));

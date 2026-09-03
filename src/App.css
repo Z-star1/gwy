@@ -744,6 +744,124 @@
   margin-top: 20px;
 }
 
+.skill-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.skill-cta-row .skill-practice-btn {
+  margin-top: 12px;
+}
+
+.secondary-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.skill-bank-jump {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 16px 0 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+  background: rgba(192, 57, 43, 0.06);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.skill-phrase-group {
+  margin-bottom: 8px;
+}
+
+.skill-phrase-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.skill-phrase-chips button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 36px;
+  text-align: left;
+  line-height: 1.35;
+}
+
+.skill-phrase-chips button.copied {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.skill-stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skill-stock-card {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.skill-stock-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.skill-stock-top button {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.skill-stock-card p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.skill-stock-use {
+  margin-top: 8px !important;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 4px 0 6px;
+}
+
+.material-types {
+  font-size: 0.8rem;
+  color: var(--shenlun);
+  margin: 0 0 10px;
+}
+
 .paper-card.wrong-card {
   border-left: 4px solid var(--primary);
 }

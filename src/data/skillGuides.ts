@@ -1,12 +1,19 @@
-export type { SkillGuide, SkillSubtype } from './skillModel';
+export type { SkillGuide, SkillSubtype, SkillPhraseGroup, SkillStockItem } from './skillModel';
 export { XINGCE_SKILL_GUIDES } from './xingceSkillGuides';
 export { SHENLUN_SKILL_GUIDES } from './shenlunSkillGuides';
 
+import { SHENLUN_SKILL_BANKS } from './shenlunSkillBanks';
 import { SHENLUN_SKILL_GUIDES } from './shenlunSkillGuides';
 import { XINGCE_SKILL_GUIDES } from './xingceSkillGuides';
 import type { SkillGuide } from './skillModel';
 
-export const SKILL_GUIDES: SkillGuide[] = [...XINGCE_SKILL_GUIDES, ...SHENLUN_SKILL_GUIDES];
+const SHENLUN_WITH_BANKS: SkillGuide[] = SHENLUN_SKILL_GUIDES.map((guide) => {
+  const bank = SHENLUN_SKILL_BANKS[guide.id];
+  if (!bank) return guide;
+  return { ...guide, phrases: bank.phrases, stock: bank.stock };
+});
+
+export const SKILL_GUIDES: SkillGuide[] = [...XINGCE_SKILL_GUIDES, ...SHENLUN_WITH_BANKS];
 
 export interface SkillPracticeTarget {
   subject: 'xingce' | 'shenlun';
