@@ -42,6 +42,8 @@ export interface ModuleProgress {
 
 export type MaterialCategory = 'jinju' | 'anli' | 'chengyu' | 'zhengce';
 
+export type ShenlunQuestionType = 'guina' | 'fenxi' | 'duice' | 'guanche' | 'zuowen';
+
 export interface Material {
   id: string;
   category: MaterialCategory;
@@ -49,6 +51,8 @@ export interface Material {
   content: string;
   usage: string;
   tags: string[];
+  /** 适合哪类申论题，素材库可按题型筛选 */
+  shenlunTypes?: ShenlunQuestionType[];
 }
 
 export type NotebookKind = 'jinju' | 'anli' | 'chengyu' | 'zhengce' | 'other';
@@ -111,8 +115,6 @@ export const XINGCE_MODULE_LABELS: Record<XingceModuleId | 'mixed', string> = {
   shuliang: '数量关系',
   mixed: '混合练习',
 };
-
-export type ShenlunQuestionType = 'guina' | 'fenxi' | 'duice' | 'guanche' | 'zuowen';
 
 export interface ShenlunMaterial {
   id: string;

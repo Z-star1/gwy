@@ -1,8 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { MATERIALS } from '../data/materials';
 import { copyText } from '../lib/copyText';
-import type { Material, MaterialCategory, NotebookEntry, NotebookKind } from '../types';
-import { MATERIAL_CATEGORY_LABELS, NOTEBOOK_KIND_LABELS } from '../types';
+import type { Material, MaterialCategory, NotebookEntry, NotebookKind, ShenlunQuestionType } from '../types';
+import { MATERIAL_CATEGORY_LABELS, NOTEBOOK_KIND_LABELS, QUESTION_TYPE_LABELS } from '../types';
 
 type InnerTab = 'library' | 'notebook';
 type LibraryFilter = MaterialCategory | 'all' | 'zhifa';
@@ -16,6 +16,15 @@ const FILTERS: { id: LibraryFilter; label: string }[] = [
   { id: 'zhengce', label: '政策热词' },
 ];
 
+const TYPE_FILTERS: { id: ShenlunQuestionType | 'all'; label: string }[] = [
+  { id: 'all', label: '全部题型' },
+  { id: 'guina', label: QUESTION_TYPE_LABELS.guina },
+  { id: 'fenxi', label: QUESTION_TYPE_LABELS.fenxi },
+  { id: 'duice', label: QUESTION_TYPE_LABELS.duice },
+  { id: 'guanche', label: QUESTION_TYPE_LABELS.guanche },
+  { id: 'zuowen', label: QUESTION_TYPE_LABELS.zuowen },
+];
+
 interface Props {
   notebook: NotebookEntry[];
   isMaterialSaved: (id: string) => boolean;
@@ -23,6 +32,7 @@ interface Props {
   onAddEntry: (entry: Omit<NotebookEntry, 'id' | 'createdAt'>) => void;
   onToggleFavorite: (id: string, favorite: boolean) => void;
   onDeleteEntry: (id: string) => void;
+  initialShenlunType?: ShenlunQuestionType | 'all';
 }
 
 export function MaterialsPage({
@@ -32,9 +42,11 @@ export function MaterialsPage({
   onAddEntry,
   onToggleFavorite,
   onDeleteEntry,
+  initialShenlunType = 'all',
 }: Props) {
   const [inner, setInner] = useState<InnerTab>('library');
   const [category, setCategory] = useState<LibraryFilter>('all');
+  const [shenlunType, setShenlunType] = useState<ShenlunQuestionType | 'all'>(initialShenlunType);
   const [query, setQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -43,10 +55,11 @@ export function MaterialsPage({
     return MATERIALS.filter((m) => {
       if (category === 'zhifa' && !m.tags.includes('行政执法')) return false;
       if (category !== 'all' && category !== 'zhifa' && m.category !== category) return false;
+      if (shenlunType !== 'all' && !m.shenlunTypes?.includes(shenlunType)) return false;
       if (!q) return true;
       return [m.title, m.content, m.usage, ...m.tags].join(' ').toLowerCase().includes(q);
     });
-  }, [category, query]);
+  }, [category, query, shenlunType]);
 
   const handleCopy = async (id: string, text: string) => {
     const ok = await copyText(text);
@@ -60,7 +73,7 @@ export function MaterialsPage({
     <section className="materials-page">
       <div className="materials-hero">
         <h2>素材与词句</h2>
-        <p>通勤、午休都能看。金句、案例、成语、热词随时抄进自己的积累本。已收录行政执法方向申论素材。</p>
+        <p>通勤、午休都能看。可按申论题型筛选金句、案例、热词；技巧页里还有各题型专用词语表。</p>
       </div>
 
       <div className="inner-tabs" role="tablist">
@@ -88,6 +101,19 @@ export function MaterialsPage({
                 type="button"
                 className={`chip ${category === c.id ? 'active' : ''}`}
                 onClick={() => setCategory(c.id)}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <p className="filter-label">按申论题型</p>
+          <div className="chip-row">
+            {TYPE_FILTERS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`chip ${shenlunType === c.id ? 'active' : ''}`}
+                onClick={() => setShenlunType(c.id)}
               >
                 {c.label}
               </button>
@@ -154,6 +180,11 @@ function MaterialCard({
       <h3>{material.title}</h3>
       <p className="material-body">{material.content}</p>
       <p className="material-usage">用法：{material.usage}</p>
+      {material.shenlunTypes && material.shenlunTypes.length > 0 && (
+        <p className="material-types">
+          适用：{material.shenlunTypes.map((t) => QUESTION_TYPE_LABELS[t]).join(' · ')}
+        </p>
+      )}
       <div className="material-actions">
         <button type="button" onClick={onCopy}>{copied ? '已复制' : '复制'}</button>
         <button type="button" className="secondary" disabled={saved} onClick={onSave}>

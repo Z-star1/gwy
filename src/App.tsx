@@ -191,7 +191,7 @@ export default function App() {
                 setTab('skills');
               }}
             >
-              申论各题型作答技巧
+              申论各题型作答技巧与词语素材
             </button>
             <ModuleSection
               title="申论"
@@ -207,7 +207,12 @@ export default function App() {
         )}
 
         {tab === 'skills' && (
-          <SkillGuide key={skillSubject} initialSubject={skillSubject} onPractice={goSkillPractice} />
+          <SkillGuide
+            key={skillSubject}
+            initialSubject={skillSubject}
+            onPractice={goSkillPractice}
+            onOpenMaterials={() => setTab('materials')}
+          />
         )}
 
         {tab === 'exams' && (
