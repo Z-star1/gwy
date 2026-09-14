@@ -44,6 +44,9 @@ export type MaterialCategory = 'jinju' | 'anli' | 'chengyu' | 'zhengce';
 
 export type ShenlunQuestionType = 'guina' | 'fenxi' | 'duice' | 'guanche' | 'zuowen';
 
+/** 手册内跳转目标（今晚任务 / 总览入口） */
+export type StudyTarget = 'skills-xingce' | 'skills-shenlun' | 'materials' | 'templates';
+
 export interface Material {
   id: string;
   category: MaterialCategory;

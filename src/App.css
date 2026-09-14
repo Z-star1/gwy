@@ -1969,3 +1969,70 @@
     font-weight: 700;
   }
 }
+
+/* Templates */
+.templates-page .skill-nav em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.template-detail .template-cat {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--primary);
+  background: rgba(192, 57, 43, 0.08);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.template-sample-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.template-sample-head h4 {
+  margin: 0;
+}
+
+.template-sample-head button,
+.skill-phrase-chips button {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.template-sample {
+  white-space: pre-wrap;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 14px;
+  line-height: 1.7;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin: 10px 0 8px;
+  overflow-x: auto;
+}
+
+.skill-phrase-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.skill-phrase-chips button.copied,
+.template-sample-head button:active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}

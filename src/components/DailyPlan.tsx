@@ -1,3 +1,4 @@
+import type { StudyTarget } from '../types';
 import { WEEKDAY_SCHEDULE, WEEKEND_SCHEDULE } from '../data/examData';
 
 const DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -5,10 +6,10 @@ const DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '
 interface Props {
   checked: string[];
   onToggle: (taskId: string) => void;
-  onGoPractice: (subject: 'xingce' | 'shenlun') => void;
+  onGoStudy: (target: StudyTarget) => void;
 }
 
-export function DailyPlan({ checked, onToggle, onGoPractice }: Props) {
+export function DailyPlan({ checked, onToggle, onGoStudy }: Props) {
   const today = new Date().getDay();
   const dayName = DAY_NAMES[today];
   const isWeekend = today === 0 || today === 6;
@@ -37,8 +38,8 @@ export function DailyPlan({ checked, onToggle, onGoPractice }: Props) {
               variant="xingce"
               checked={checked.includes('xingce')}
               onToggle={onToggle}
-              onGo={() => onGoPractice('xingce')}
-              goLabel="去题库"
+              onGo={() => onGoStudy('skills-xingce')}
+              goLabel="看技巧"
             />
             <TaskRow
               taskId="shenlun"
@@ -47,8 +48,8 @@ export function DailyPlan({ checked, onToggle, onGoPractice }: Props) {
               variant="shenlun"
               checked={checked.includes('shenlun')}
               onToggle={onToggle}
-              onGo={() => onGoPractice('shenlun')}
-              goLabel="去题库"
+              onGo={() => onGoStudy(today % 2 === 0 ? 'materials' : 'templates')}
+              goLabel={today % 2 === 0 ? '看素材' : '看模板'}
             />
             <p className="daily-tip">💡 {weekdayPlan.tip} · 勾选计入累计学习时长</p>
           </div>
@@ -63,8 +64,8 @@ export function DailyPlan({ checked, onToggle, onGoPractice }: Props) {
               variant="weekend"
               checked={checked.includes('wk')}
               onToggle={onToggle}
-              onGo={() => onGoPractice(today === 6 ? 'xingce' : 'shenlun')}
-              goLabel="去题库"
+              onGo={() => onGoStudy(today === 6 ? 'skills-xingce' : 'templates')}
+              goLabel={today === 6 ? '看技巧' : '看模板'}
             />
             <p className="daily-tip">💡 {weekendPlan.tip} · 勾选计入累计学习时长</p>
           </div>

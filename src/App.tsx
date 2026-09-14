@@ -1,32 +1,28 @@
 import { useEffect, useState } from 'react';
 import { BackupBar } from './components/BackupBar';
-import { SkillGuide } from './components/SkillGuide';
-import { ExamBank } from './components/ExamBank';
-import { Dashboard } from './components/Dashboard';
 import { DailyPlan } from './components/DailyPlan';
+import { Dashboard } from './components/Dashboard';
 import { MaterialsPage } from './components/MaterialsPage';
 import { ModuleSection } from './components/ModuleSection';
-import { ScoreTracker } from './components/ScoreTracker';
+import { SkillGuide } from './components/SkillGuide';
 import { StudyPlan } from './components/StudyPlan';
-import { SKILL_TO_PRACTICE } from './data/skillGuides';
-import { XINGCE_MODULES, SHENLUN_MODULES } from './data/examData';
+import { TemplatesPage } from './components/TemplatesPage';
+import { SHENLUN_MODULES, XINGCE_MODULES } from './data/examData';
 import { useStudyStore } from './hooks/useStudyStore';
+import type { StudyTarget } from './types';
 import './App.css';
 
-type Tab = 'overview' | 'xingce' | 'shenlun' | 'scores' | 'materials' | 'plan' | 'exams' | 'skills';
+type Tab = 'overview' | 'skills' | 'materials' | 'templates' | 'plan';
 
 const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'overview', label: '总览', short: '总览' },
-  { id: 'exams', label: '题库', short: '题库' },
   { id: 'skills', label: '技巧', short: '技巧' },
   { id: 'materials', label: '素材', short: '素材' },
-  { id: 'xingce', label: '行测', short: '行测' },
-  { id: 'shenlun', label: '申论', short: '申论' },
+  { id: 'templates', label: '模板', short: '模板' },
   { id: 'plan', label: '规划', short: '规划' },
-  { id: 'scores', label: '模考', short: '模考' },
 ];
 
-const MOBILE_TABS: Tab[] = ['overview', 'exams', 'skills', 'materials', 'plan'];
+const MOBILE_TABS: Tab[] = ['overview', 'skills', 'materials', 'templates', 'plan'];
 
 function daysSince(dateStr: string) {
   const start = new Date(`${dateStr}T00:00:00`);
@@ -42,43 +38,38 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('overview');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [skillSubject, setSkillSubject] = useState<'xingce' | 'shenlun'>('xingce');
-  const [examJump, setExamJump] = useState<{ subject: 'xingce' | 'shenlun'; setId?: string }>({
-    subject: 'xingce',
-  });
-  const [examNonce, setExamNonce] = useState(0);
   const store = useStudyStore();
 
   const toggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
-  const goExam = (subject: 'xingce' | 'shenlun', setId?: string) => {
-    setExamJump({ subject, setId });
-    setExamNonce((n) => n + 1);
-    setTab('exams');
-  };
-
-  const goSkillPractice = (skillId: string) => {
-    const target = SKILL_TO_PRACTICE[skillId];
-    if (!target) {
-      setTab('exams');
+  const goStudy = (target: StudyTarget) => {
+    if (target === 'skills-xingce') {
+      setSkillSubject('xingce');
+      setTab('skills');
       return;
     }
-    goExam(target.subject, target.setId);
+    if (target === 'skills-shenlun') {
+      setSkillSubject('shenlun');
+      setTab('skills');
+      return;
+    }
+    if (target === 'materials') {
+      setTab('materials');
+      return;
+    }
+    setTab('templates');
   };
 
   const dailyPlan = (
-    <DailyPlan
-      checked={store.todayChecked}
-      onToggle={store.toggleDailyCheck}
-      onGoPractice={(subject) => goExam(subject)}
-    />
+    <DailyPlan checked={store.todayChecked} onToggle={store.toggleDailyCheck} onGoStudy={goStudy} />
   );
 
   return (
     <div className="app">
       <nav className="nav">
-        <div className="nav-brand">GWY 备考</div>
+        <div className="nav-brand">GWY 手册</div>
         <div className="nav-tabs">
           {TABS.map((t) => (
             <button
@@ -95,8 +86,8 @@ export default function App() {
 
       <InstallBanner />
 
-      <main className={`main ${tab === 'exams' ? 'exam-mode' : ''}`}>
-        {(tab === 'overview' || tab === 'xingce' || tab === 'shenlun') && (
+      <main className="main">
+        {tab === 'overview' && (
           <Dashboard
             latestMock={store.latestMock}
             bestMock={store.bestMock}
@@ -115,11 +106,14 @@ export default function App() {
 
         {tab === 'overview' && (
           <>
-            <button type="button" className="jump-materials" onClick={() => goExam('shenlun')}>
-              电脑做申论 · 按年份打开模拟卷
+            <button type="button" className="jump-materials" onClick={() => goStudy('skills-shenlun')}>
+              看申论技巧与词语 · 分题型经验
+            </button>
+            <button type="button" className="jump-materials secondary-jump" onClick={() => setTab('templates')}>
+              打开作文 / 公文模板 · 框架与套话
             </button>
             <button type="button" className="jump-materials secondary-jump" onClick={() => setTab('materials')}>
-              打开素材库 · 看金句案例，记进积累本
+              打开素材库 · 金句案例热词
             </button>
           </>
         )}
@@ -127,7 +121,7 @@ export default function App() {
         {tab === 'overview' && (
           <>
             <ModuleSection
-              title="行测"
+              title="行测模块（技巧进度）"
               icon="📝"
               modules={XINGCE_MODULES}
               progress={store.state.moduleProgress}
@@ -137,7 +131,7 @@ export default function App() {
               onToggleExpand={toggleExpand}
             />
             <ModuleSection
-              title="申论"
+              title="申论模块（技巧进度）"
               icon="✍️"
               modules={SHENLUN_MODULES}
               progress={store.state.moduleProgress}
@@ -150,86 +144,12 @@ export default function App() {
           </>
         )}
 
-        {tab === 'xingce' && (
-          <>
-            <button type="button" className="jump-materials" onClick={() => goExam('xingce')}>
-              电脑做行测练习 · 资料判断言语常识数量
-            </button>
-            <button
-              type="button"
-              className="jump-materials secondary-jump"
-              onClick={() => {
-                setSkillSubject('xingce');
-                setTab('skills');
-              }}
-            >
-              行测各题型做题技巧
-            </button>
-            <ModuleSection
-              title="行测"
-              icon="📝"
-              modules={XINGCE_MODULES}
-              progress={store.state.moduleProgress}
-              onStatusChange={store.updateModuleStatus}
-              onAddHours={store.addStudyHours}
-              expandedId={expandedId}
-              onToggleExpand={toggleExpand}
-            />
-          </>
-        )}
-
-        {tab === 'shenlun' && (
-          <>
-            <button type="button" className="jump-materials" onClick={() => goExam('shenlun')}>
-              电脑做申论模拟卷 · 按年份练习行政执法卷
-            </button>
-            <button
-              type="button"
-              className="jump-materials secondary-jump"
-              onClick={() => {
-                setSkillSubject('shenlun');
-                setTab('skills');
-              }}
-            >
-              申论各题型作答技巧与词语素材
-            </button>
-            <ModuleSection
-              title="申论"
-              icon="✍️"
-              modules={SHENLUN_MODULES}
-              progress={store.state.moduleProgress}
-              onStatusChange={store.updateModuleStatus}
-              onAddHours={store.addStudyHours}
-              expandedId={expandedId}
-              onToggleExpand={toggleExpand}
-            />
-          </>
-        )}
-
         {tab === 'skills' && (
           <SkillGuide
             key={skillSubject}
             initialSubject={skillSubject}
-            onPractice={goSkillPractice}
             onOpenMaterials={() => setTab('materials')}
-          />
-        )}
-
-        {tab === 'exams' && (
-          <ExamBank
-            key={examNonce}
-            initialSubject={examJump.subject}
-            initialXingceSet={examJump.setId}
-            attempts={store.state.examAttempts}
-            onStart={store.startExam}
-            onSaveAnswer={store.saveExamAnswer}
-            onSubmit={store.submitExam}
-            onReset={store.resetExam}
-            xingceAttempts={store.state.xingceAttempts}
-            onXingceAnswer={store.saveXingceAnswer}
-            onXingceSubmit={store.submitXingce}
-            onXingceReset={store.resetXingce}
-            wrongQuestionIds={store.state.wrongQuestionIds}
+            onOpenTemplates={() => setTab('templates')}
           />
         )}
 
@@ -244,13 +164,7 @@ export default function App() {
           />
         )}
 
-        {tab === 'scores' && (
-          <ScoreTracker
-            records={store.state.scoreRecords}
-            onAdd={store.addScoreRecord}
-            onDelete={store.deleteScoreRecord}
-          />
-        )}
+        {tab === 'templates' && <TemplatesPage />}
 
         {tab === 'plan' && (
           <>
@@ -274,7 +188,7 @@ export default function App() {
       </nav>
 
       <footer className="footer">
-        安卓可用浏览器打开，或添加到主屏幕 · 数据保存在本机
+        技巧 · 素材 · 模板手册 · 可添加到手机主屏幕 · 数据保存在本机
       </footer>
     </div>
   );
@@ -297,7 +211,7 @@ function InstallBanner() {
 
   return (
     <div className="install-banner">
-      <span>添加到手机桌面，通勤也能看素材</span>
+      <span>添加到手机桌面，通勤也能看技巧和素材</span>
       <div className="install-actions">
         <button
           type="button"
