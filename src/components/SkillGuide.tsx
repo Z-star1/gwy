@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react';
-import { SKILL_GUIDES, SKILL_TO_PRACTICE } from '../data/skillGuides';
-import type { SkillGuide, SkillPhraseGroup, SkillStockItem, SkillSubtype } from '../data/skillModel';
+import { SKILL_GUIDES } from '../data/skillGuides';
+import type { SkillGuide as SkillGuideData, SkillPhraseGroup, SkillStockItem, SkillSubtype } from '../data/skillModel';
 import { copyText } from '../lib/copyText';
 
 type Subject = 'xingce' | 'shenlun';
 
 interface Props {
   initialSubject?: Subject;
-  onPractice: (skillId: string) => void;
   onOpenMaterials?: () => void;
+  onOpenTemplates?: () => void;
 }
 
-export function SkillGuide({ initialSubject = 'xingce', onPractice, onOpenMaterials }: Props) {
+export function SkillGuide({ initialSubject = 'xingce', onOpenMaterials, onOpenTemplates }: Props) {
   const [subject, setSubject] = useState<Subject>(initialSubject);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [subId, setSubId] = useState<string>('overview');
@@ -46,7 +46,7 @@ export function SkillGuide({ initialSubject = 'xingce', onPractice, onOpenMateri
       <div className="exam-hero">
         <h2>题型技巧与词语</h2>
         <p>
-          手机、电脑都能看。行测看经验与步骤；申论除了写法，还有分题型常用词语和速查素材，点一下就能复制。
+          这是手册，不是题库。手机、电脑都能看：行测经验步骤；申论写法、分题型词语和速查素材，点一下就能复制。
         </p>
       </div>
 
@@ -126,14 +126,14 @@ export function SkillGuide({ initialSubject = 'xingce', onPractice, onOpenMateri
             {subId !== 'overview' && subId !== 'bank' && subtype && <SubtypeBody sub={subtype} />}
 
             <div className="skill-cta-row">
-              {SKILL_TO_PRACTICE[active.id] && (
-                <button type="button" className="primary-btn skill-practice-btn" onClick={() => onPractice(active.id)}>
-                  {SKILL_TO_PRACTICE[active.id].label}
-                </button>
-              )}
               {subject === 'shenlun' && onOpenMaterials && (
                 <button type="button" className="secondary-btn skill-practice-btn" onClick={onOpenMaterials}>
                   打开完整素材库
+                </button>
+              )}
+              {subject === 'shenlun' && onOpenTemplates && (
+                <button type="button" className="primary-btn skill-practice-btn" onClick={onOpenTemplates}>
+                  打开作文 / 公文模板
                 </button>
               )}
             </div>
@@ -149,7 +149,7 @@ function Overview({
   onOpen,
   showBankEntry,
 }: {
-  guide: SkillGuide;
+  guide: SkillGuideData;
   onOpen: (id: string) => void;
   showBankEntry: boolean;
 }) {

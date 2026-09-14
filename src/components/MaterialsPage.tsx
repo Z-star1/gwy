@@ -1,10 +1,11 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { MATERIALS } from '../data/materials';
+import { READING_LINKS } from '../data/readingLinks';
 import { copyText } from '../lib/copyText';
 import type { Material, MaterialCategory, NotebookEntry, NotebookKind, ShenlunQuestionType } from '../types';
 import { MATERIAL_CATEGORY_LABELS, NOTEBOOK_KIND_LABELS, QUESTION_TYPE_LABELS } from '../types';
 
-type InnerTab = 'library' | 'notebook';
+type InnerTab = 'library' | 'links' | 'notebook';
 type LibraryFilter = MaterialCategory | 'all' | 'zhifa';
 
 const FILTERS: { id: LibraryFilter; label: string }[] = [
@@ -73,19 +74,26 @@ export function MaterialsPage({
     <section className="materials-page">
       <div className="materials-hero">
         <h2>素材与词句</h2>
-        <p>通勤、午休都能看。可按申论题型筛选金句、案例、热词；技巧页里还有各题型专用词语表。</p>
+        <p>
+          通勤、午休都能看。本站有金句案例热词；「日常阅读」里放了人民日报、求是、政府网等外链，打开就能跟当天时政。
+        </p>
       </div>
 
       <div className="inner-tabs" role="tablist">
         <button type="button" className={inner === 'library' ? 'active' : ''} onClick={() => setInner('library')}>
           素材库
         </button>
+        <button type="button" className={inner === 'links' ? 'active' : ''} onClick={() => setInner('links')}>
+          日常阅读
+        </button>
         <button type="button" className={inner === 'notebook' ? 'active' : ''} onClick={() => setInner('notebook')}>
           我的积累 {notebook.length > 0 && <span className="count-pill">{notebook.length}</span>}
         </button>
       </div>
 
-      {inner === 'library' ? (
+      {inner === 'links' ? (
+        <ReadingLinksPanel />
+      ) : inner === 'library' ? (
         <>
           <input
             className="search-input"
@@ -151,6 +159,38 @@ export function MaterialsPage({
         />
       )}
     </section>
+  );
+}
+
+function ReadingLinksPanel() {
+  return (
+    <div className="reading-links">
+      <p className="result-hint">
+        以下为权威站点外链，点击在新标签打开。建议每天看 1 篇评论或 1 条政策，金句记进「我的积累」。
+      </p>
+      <div className="reading-link-list">
+        {READING_LINKS.map((link) => (
+          <a
+            key={link.id}
+            className="reading-link-card"
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div className="reading-link-top">
+              <strong>{link.name}</strong>
+              <span className="reading-open">打开 ↗</span>
+            </div>
+            <p>{link.blurb}</p>
+            <div className="tag-row">
+              {link.tags.map((t) => (
+                <span key={t} className="mini-tag">{t}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }
 
