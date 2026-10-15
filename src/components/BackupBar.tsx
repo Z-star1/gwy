@@ -14,7 +14,7 @@ export function BackupBar({ onExport, onImport }: Props) {
     <section className="backup-bar">
       <div>
         <h2>本地备份</h2>
-        <p>打卡、错题、模考和笔记都存在本机浏览器。换电脑、清缓存或重装前先导出 JSON。</p>
+        <p>打卡、模块进度和积累本存在本机浏览器。换电脑、清缓存或重装前先导出 JSON。</p>
       </div>
       <div className="backup-actions">
         <button type="button" className="ghost-btn" onClick={() => { onExport(); setError(false); setMessage('已下载备份文件'); }}>

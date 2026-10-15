@@ -1,5 +1,6 @@
-import type { StudyTarget } from '../types';
 import { WEEKDAY_SCHEDULE, WEEKEND_SCHEDULE } from '../data/examData';
+import { checkInHours } from '../lib/dates';
+import type { StudyTarget } from '../types';
 
 const DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -15,7 +16,7 @@ export function DailyPlan({ checked, onToggle, onGoStudy }: Props) {
   const isWeekend = today === 0 || today === 6;
   const weekdayPlan = WEEKDAY_SCHEDULE.find((d) => d.day === dayName);
   const weekendPlan = WEEKEND_SCHEDULE.find((d) => d.day === dayName);
-  const doneHours = checked.reduce((sum, id) => sum + (id === 'wk' ? 2 : 1), 0);
+  const doneHours = checkInHours(checked);
 
   return (
     <section className="daily-section">

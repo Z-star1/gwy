@@ -1,16 +1,25 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BackupBar } from './components/BackupBar';
 import { DailyPlan } from './components/DailyPlan';
 import { Dashboard } from './components/Dashboard';
-import { MaterialsPage } from './components/MaterialsPage';
 import { ModuleSection } from './components/ModuleSection';
-import { SkillGuide } from './components/SkillGuide';
 import { StudyPlan } from './components/StudyPlan';
-import { TemplatesPage } from './components/TemplatesPage';
 import { SHENLUN_MODULES, XINGCE_MODULES } from './data/examData';
 import { useStudyStore } from './hooks/useStudyStore';
 import type { StudyTarget } from './types';
 import './App.css';
+
+const SkillGuide = lazy(() => import('./components/SkillGuide').then((m) => ({ default: m.SkillGuide })));
+const MaterialsPage = lazy(() =>
+  import('./components/MaterialsPage').then((m) => ({ default: m.MaterialsPage })),
+);
+const TemplatesPage = lazy(() =>
+  import('./components/TemplatesPage').then((m) => ({ default: m.TemplatesPage })),
+);
+
+function TabFallback() {
+  return <p className="tab-fallback">正在打开…</p>;
+}
 
 type Tab = 'overview' | 'skills' | 'materials' | 'templates' | 'plan';
 
@@ -21,8 +30,6 @@ const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'templates', label: '模板', short: '模板' },
   { id: 'plan', label: '规划', short: '规划' },
 ];
-
-const MOBILE_TABS: Tab[] = ['overview', 'skills', 'materials', 'templates', 'plan'];
 
 function daysSince(dateStr: string) {
   const start = new Date(`${dateStr}T00:00:00`);
@@ -145,26 +152,34 @@ export default function App() {
         )}
 
         {tab === 'skills' && (
-          <SkillGuide
-            key={skillSubject}
-            initialSubject={skillSubject}
-            onOpenMaterials={() => setTab('materials')}
-            onOpenTemplates={() => setTab('templates')}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <SkillGuide
+              key={skillSubject}
+              initialSubject={skillSubject}
+              onOpenMaterials={() => setTab('materials')}
+              onOpenTemplates={() => setTab('templates')}
+            />
+          </Suspense>
         )}
 
         {tab === 'materials' && (
-          <MaterialsPage
-            notebook={store.state.notebook}
-            isMaterialSaved={store.isMaterialSaved}
-            onSaveMaterial={store.saveMaterialToNotebook}
-            onAddEntry={store.addNotebookEntry}
-            onToggleFavorite={(id, favorite) => store.updateNotebookEntry(id, { favorite })}
-            onDeleteEntry={store.deleteNotebookEntry}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <MaterialsPage
+              notebook={store.state.notebook}
+              isMaterialSaved={store.isMaterialSaved}
+              onSaveMaterial={store.saveMaterialToNotebook}
+              onAddEntry={store.addNotebookEntry}
+              onToggleFavorite={(id, favorite) => store.updateNotebookEntry(id, { favorite })}
+              onDeleteEntry={store.deleteNotebookEntry}
+            />
+          </Suspense>
         )}
 
-        {tab === 'templates' && <TemplatesPage />}
+        {tab === 'templates' && (
+          <Suspense fallback={<TabFallback />}>
+            <TemplatesPage />
+          </Suspense>
+        )}
 
         {tab === 'plan' && (
           <>
@@ -175,7 +190,7 @@ export default function App() {
       </main>
 
       <nav className="bottom-nav" aria-label="手机导航">
-        {TABS.filter((t) => MOBILE_TABS.includes(t.id)).map((t) => (
+        {TABS.map((t) => (
           <button
             key={t.id}
             type="button"

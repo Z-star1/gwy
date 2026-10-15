@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { SKILL_GUIDES } from '../data/skillGuides';
+import { Component, Suspense, use, useState, type ReactNode } from 'react';
+import { loadSubjectGuides } from '../data/skillGuides';
 import type { SkillGuide as SkillGuideData, SkillPhraseGroup, SkillStockItem, SkillSubtype } from '../data/skillModel';
 import { copyText } from '../lib/copyText';
 
@@ -13,33 +13,7 @@ interface Props {
 
 export function SkillGuide({ initialSubject = 'xingce', onOpenMaterials, onOpenTemplates }: Props) {
   const [subject, setSubject] = useState<Subject>(initialSubject);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [subId, setSubId] = useState<string>('overview');
-  const [copied, setCopied] = useState<string | null>(null);
-
-  const list = useMemo(() => SKILL_GUIDES.filter((s) => s.subject === subject), [subject]);
-  const active = list.find((s) => s.id === activeId) ?? list[0];
-  const subtype = active?.subtypes.find((s) => s.id === subId);
-  const hasBank = Boolean(active?.phrases?.length || active?.stock?.length);
-
-  const selectType = (id: string) => {
-    setActiveId(id);
-    setSubId('overview');
-  };
-
-  const selectSubject = (next: Subject) => {
-    setSubject(next);
-    setActiveId(null);
-    setSubId('overview');
-  };
-
-  const handleCopy = async (key: string, text: string) => {
-    const ok = await copyText(text);
-    if (ok) {
-      setCopied(key);
-      window.setTimeout(() => setCopied((cur) => (cur === key ? null : cur)), 1200);
-    }
-  };
+  const [attempt, setAttempt] = useState(0);
 
   return (
     <section className="skill-page">
@@ -51,96 +25,161 @@ export function SkillGuide({ initialSubject = 'xingce', onOpenMaterials, onOpenT
       </div>
 
       <div className="inner-tabs" role="tablist">
-        <button type="button" className={subject === 'xingce' ? 'active' : ''} onClick={() => selectSubject('xingce')}>
+        <button type="button" className={subject === 'xingce' ? 'active' : ''} onClick={() => setSubject('xingce')}>
           行测技巧
         </button>
-        <button type="button" className={subject === 'shenlun' ? 'active' : ''} onClick={() => selectSubject('shenlun')}>
+        <button type="button" className={subject === 'shenlun' ? 'active' : ''} onClick={() => setSubject('shenlun')}>
           申论技巧与词语
         </button>
       </div>
 
-      <div className="skill-layout">
-        <div className="skill-nav" role="tablist" aria-label="大题型">
-          {list.map((s) => (
+      <GuideBoundary key={attempt} onRetry={() => setAttempt((n) => n + 1)}>
+        <Suspense fallback={<p className="tab-fallback">正在载入技巧…</p>}>
+          <SkillBody
+            key={subject}
+            subject={subject}
+            onOpenMaterials={onOpenMaterials}
+            onOpenTemplates={onOpenTemplates}
+          />
+        </Suspense>
+      </GuideBoundary>
+    </section>
+  );
+}
+
+class GuideBoundary extends Component<{ children: ReactNode; onRetry: () => void }, { error: boolean }> {
+  state = { error: false };
+
+  static getDerivedStateFromError() {
+    return { error: true };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <p className="tab-fallback">
+          技巧没有载入。
+          <button type="button" onClick={this.props.onRetry}>
+            重试
+          </button>
+        </p>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function SkillBody({
+  subject,
+  onOpenMaterials,
+  onOpenTemplates,
+}: {
+  subject: Subject;
+  onOpenMaterials?: () => void;
+  onOpenTemplates?: () => void;
+}) {
+  const guides = use(loadSubjectGuides(subject));
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [subId, setSubId] = useState('overview');
+  const [copied, setCopied] = useState<string | null>(null);
+  const list = guides.filter((item) => item.subject === subject);
+  const active = list.find((item) => item.id === activeId) ?? list[0];
+  const subtype = active?.subtypes.find((item) => item.id === subId);
+  const hasBank = Boolean(active?.phrases?.length || active?.stock?.length);
+
+  const handleCopy = async (key: string, text: string) => {
+    const ok = await copyText(text);
+    if (ok) {
+      setCopied(key);
+      window.setTimeout(() => setCopied((cur) => (cur === key ? null : cur)), 1200);
+    }
+  };
+
+  if (!active) return null;
+
+  return (
+    <div className="skill-layout">
+      <div className="skill-nav" role="tablist" aria-label="大题型">
+        {list.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={active.id === item.id ? 'active' : ''}
+            onClick={() => {
+              setActiveId(item.id);
+              setSubId('overview');
+            }}
+          >
+            <span>{item.name}</span>
+            <em>
+              {item.subtypes.length} 种考法
+              {item.phrases?.length ? ' · 有词语' : ''}
+            </em>
+          </button>
+        ))}
+      </div>
+
+      <article className="skill-detail">
+        <h3>{active.name}</h3>
+        <p className="skill-slogan">{active.slogan}</p>
+        <p className="skill-meta">{active.goal} · {active.time}</p>
+
+        <div className="skill-subs" role="tablist" aria-label="子题型">
+          <button
+            type="button"
+            className={subId === 'overview' ? 'active' : ''}
+            onClick={() => setSubId('overview')}
+          >
+            总览
+          </button>
+          {hasBank && (
             <button
-              key={s.id}
               type="button"
-              className={active.id === s.id ? 'active' : ''}
-              onClick={() => selectType(s.id)}
+              className={subId === 'bank' ? 'active' : ''}
+              onClick={() => setSubId('bank')}
             >
-              <span>{s.name}</span>
-              <em>
-                {s.subtypes.length} 种考法
-                {s.phrases?.length ? ' · 有词语' : ''}
-              </em>
+              词语素材
+            </button>
+          )}
+          {active.subtypes.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={subId === item.id ? 'active' : ''}
+              onClick={() => setSubId(item.id)}
+            >
+              {item.name}
             </button>
           ))}
         </div>
 
-        {active && (
-          <article className="skill-detail">
-            <h3>{active.name}</h3>
-            <p className="skill-slogan">{active.slogan}</p>
-            <p className="skill-meta">{active.goal} · {active.time}</p>
-
-            <div className="skill-subs" role="tablist" aria-label="子题型">
-              <button
-                type="button"
-                className={subId === 'overview' ? 'active' : ''}
-                onClick={() => setSubId('overview')}
-              >
-                总览
-              </button>
-              {hasBank && (
-                <button
-                  type="button"
-                  className={subId === 'bank' ? 'active' : ''}
-                  onClick={() => setSubId('bank')}
-                >
-                  词语素材
-                </button>
-              )}
-              {active.subtypes.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={subId === s.id ? 'active' : ''}
-                  onClick={() => setSubId(s.id)}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
-
-            {subId === 'overview' && (
-              <Overview guide={active} onOpen={setSubId} showBankEntry={hasBank} />
-            )}
-            {subId === 'bank' && hasBank && (
-              <BankBody
-                phrases={active.phrases ?? []}
-                stock={active.stock ?? []}
-                copied={copied}
-                onCopy={handleCopy}
-              />
-            )}
-            {subId !== 'overview' && subId !== 'bank' && subtype && <SubtypeBody sub={subtype} />}
-
-            <div className="skill-cta-row">
-              {subject === 'shenlun' && onOpenMaterials && (
-                <button type="button" className="secondary-btn skill-practice-btn" onClick={onOpenMaterials}>
-                  打开完整素材库
-                </button>
-              )}
-              {subject === 'shenlun' && onOpenTemplates && (
-                <button type="button" className="primary-btn skill-practice-btn" onClick={onOpenTemplates}>
-                  打开作文 / 公文模板
-                </button>
-              )}
-            </div>
-          </article>
+        {subId === 'overview' && (
+          <Overview guide={active} onOpen={setSubId} showBankEntry={hasBank} />
         )}
-      </div>
-    </section>
+        {subId === 'bank' && hasBank && (
+          <BankBody
+            phrases={active.phrases ?? []}
+            stock={active.stock ?? []}
+            copied={copied}
+            onCopy={handleCopy}
+          />
+        )}
+        {subId !== 'overview' && subId !== 'bank' && subtype && <SubtypeBody sub={subtype} />}
+
+        <div className="skill-cta-row">
+          {subject === 'shenlun' && onOpenMaterials && (
+            <button type="button" className="secondary-btn skill-practice-btn" onClick={onOpenMaterials}>
+              打开完整素材库
+            </button>
+          )}
+          {subject === 'shenlun' && onOpenTemplates && (
+            <button type="button" className="primary-btn skill-practice-btn" onClick={onOpenTemplates}>
+              打开作文 / 公文模板
+            </button>
+          )}
+        </div>
+      </article>
+    </div>
   );
 }
 

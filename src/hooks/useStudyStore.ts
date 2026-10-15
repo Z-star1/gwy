@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   ModuleProgress,
   ModuleStatus,
@@ -9,7 +9,6 @@ import type {
   StudyState,
 } from '../types';
 import { XINGCE_MODULES, SHENLUN_MODULES } from '../data/examData';
-import { questionsByIds } from '../data/xingceQuestions';
 import { checkInHours, localDateKey } from '../lib/dates';
 
 const STORAGE_KEY = 'gwy-study-state';
@@ -39,18 +38,58 @@ function defaultState(): StudyState {
   };
 }
 
+const MODULE_STATUSES: ModuleStatus[] = ['not-started', 'learning', 'practicing', 'mastered'];
+
+function isPlainRecord<T extends object>(value: unknown): value is T {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isModuleStatus(value: unknown): value is ModuleStatus {
+  return typeof value === 'string' && MODULE_STATUSES.includes(value as ModuleStatus);
+}
+
+function normalizeModuleProgress(raw: unknown): Record<string, ModuleProgress> {
+  const progress = createDefaultProgress();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return progress;
+  for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
+    const base = progress[id] ?? { moduleId: id, status: 'not-started' as const, hoursSpent: 0 };
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      progress[id] = base;
+      continue;
+    }
+    const record = value as Partial<ModuleProgress>;
+    const hours = record.hoursSpent;
+    progress[id] = {
+      moduleId: id,
+      status: isModuleStatus(record.status) ? record.status : base.status,
+      hoursSpent: typeof hours === 'number' && Number.isFinite(hours) && hours >= 0 ? hours : base.hoursSpent,
+    };
+  }
+  return progress;
+}
+
+function normalizeDailyChecks(raw: unknown): Record<string, string[]> {
+  if (!isPlainRecord<Record<string, unknown>>(raw)) return {};
+  const checks: Record<string, string[]> = {};
+  for (const [date, tasks] of Object.entries(raw)) {
+    if (!Array.isArray(tasks)) continue;
+    checks[date] = tasks.filter((id): id is string => typeof id === 'string');
+  }
+  return checks;
+}
+
 function hydrateState(parsed: Partial<StudyState>): StudyState {
   const defaults = defaultState();
   return {
     ...defaults,
     ...parsed,
-    moduleProgress: { ...defaults.moduleProgress, ...parsed.moduleProgress },
-    scoreRecords: parsed.scoreRecords ?? [],
-    studyLogs: parsed.studyLogs ?? [],
-    notebook: parsed.notebook ?? [],
-    examAttempts: parsed.examAttempts ?? {},
-    xingceAttempts: parsed.xingceAttempts ?? {},
-    dailyChecks: parsed.dailyChecks ?? {},
+    moduleProgress: normalizeModuleProgress(parsed.moduleProgress),
+    scoreRecords: Array.isArray(parsed.scoreRecords) ? parsed.scoreRecords : [],
+    studyLogs: Array.isArray(parsed.studyLogs) ? parsed.studyLogs : [],
+    notebook: Array.isArray(parsed.notebook) ? parsed.notebook : [],
+    examAttempts: isPlainRecord(parsed.examAttempts) ? parsed.examAttempts : {},
+    xingceAttempts: isPlainRecord(parsed.xingceAttempts) ? parsed.xingceAttempts : {},
+    dailyChecks: normalizeDailyChecks(parsed.dailyChecks),
     wrongQuestionIds: Array.isArray(parsed.wrongQuestionIds) ? parsed.wrongQuestionIds : [],
     startDate: parsed.startDate ?? defaults.startDate,
     examDate: parsed.examDate ?? '',
@@ -80,7 +119,11 @@ function extractImportedState(raw: unknown): Partial<StudyState> | null {
 }
 
 function saveState(state: StudyState) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // 隐私模式或配额满时保留内存里的数据，不打断页面
+  }
 }
 
 export function useStudyStore() {
@@ -101,16 +144,24 @@ export function useStudyStore() {
   }, []);
 
   const addStudyHours = useCallback((moduleId: string, hours: number) => {
-    setState((prev) => ({
-      ...prev,
-      moduleProgress: {
-        ...prev.moduleProgress,
-        [moduleId]: {
-          ...prev.moduleProgress[moduleId],
-          hoursSpent: prev.moduleProgress[moduleId].hoursSpent + hours,
+    if (!Number.isFinite(hours) || hours <= 0) return;
+    setState((prev) => {
+      const current = prev.moduleProgress[moduleId] ?? {
+        moduleId,
+        status: 'not-started' as const,
+        hoursSpent: 0,
+      };
+      return {
+        ...prev,
+        moduleProgress: {
+          ...prev.moduleProgress,
+          [moduleId]: {
+            ...current,
+            hoursSpent: current.hoursSpent + hours,
+          },
         },
-      },
-    }));
+      };
+    });
   }, []);
 
   const addScoreRecord = useCallback((record: Omit<ScoreRecord, 'id'>) => {
@@ -165,9 +216,17 @@ export function useStudyStore() {
     }));
   }, []);
 
+  const savedMaterialIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const entry of state.notebook) {
+      if (entry.sourceMaterialId) ids.add(entry.sourceMaterialId);
+    }
+    return ids;
+  }, [state.notebook]);
+
   const isMaterialSaved = useCallback(
-    (materialId: string) => state.notebook.some((e) => e.sourceMaterialId === materialId),
-    [state.notebook],
+    (materialId: string) => savedMaterialIds.has(materialId),
+    [savedMaterialIds],
   );
 
   const saveMaterialToNotebook = useCallback(
@@ -268,24 +327,27 @@ export function useStudyStore() {
   }, []);
 
   const submitXingce = useCallback((setId: string, questionIds: string[]) => {
-    setState((prev) => {
-      const current = prev.xingceAttempts[setId] ?? { setId, answers: {} };
+    void import('../data/xingceQuestions').then(({ questionsByIds }) => {
       const qs = questionsByIds(questionIds);
-      const newlyWrong: string[] = [];
-      const newlyRight: string[] = [];
-      for (const q of qs) {
-        if (current.answers[q.id] === q.answer) newlyRight.push(q.id);
-        else newlyWrong.push(q.id);
-      }
-      const keep = prev.wrongQuestionIds.filter((id) => !newlyRight.includes(id));
-      return {
-        ...prev,
-        wrongQuestionIds: [...new Set([...keep, ...newlyWrong])],
-        xingceAttempts: {
-          ...prev.xingceAttempts,
-          [setId]: { ...current, submittedAt: new Date().toISOString() },
-        },
-      };
+      setState((prev) => {
+        const current = prev.xingceAttempts[setId] ?? { setId, answers: {} };
+        if (current.submittedAt) return prev;
+        const newlyWrong: string[] = [];
+        const newlyRight: string[] = [];
+        for (const q of qs) {
+          if (current.answers[q.id] === q.answer) newlyRight.push(q.id);
+          else newlyWrong.push(q.id);
+        }
+        const keep = prev.wrongQuestionIds.filter((id) => !newlyRight.includes(id));
+        return {
+          ...prev,
+          wrongQuestionIds: [...new Set([...keep, ...newlyWrong])],
+          xingceAttempts: {
+            ...prev.xingceAttempts,
+            [setId]: { ...current, submittedAt: new Date().toISOString() },
+          },
+        };
+      });
     });
   }, []);
 
@@ -316,8 +378,10 @@ export function useStudyStore() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `gwy-backup-${localDateKey()}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   }, [state]);
 
   const importBackup = useCallback((raw: unknown) => {

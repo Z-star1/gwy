@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { MATERIALS } from '../data/materials';
 import { READING_LINKS } from '../data/readingLinks';
 import { copyText } from '../lib/copyText';
@@ -16,6 +16,11 @@ const FILTERS: { id: LibraryFilter; label: string }[] = [
   { id: 'chengyu', label: '高频成语' },
   { id: 'zhengce', label: '政策热词' },
 ];
+
+const MATERIAL_INDEX = MATERIALS.map((material) => ({
+  material,
+  haystack: [material.title, material.content, material.usage, ...material.tags].join('\n').toLowerCase(),
+}));
 
 const TYPE_FILTERS: { id: ShenlunQuestionType | 'all'; label: string }[] = [
   { id: 'all', label: '全部题型' },
@@ -53,14 +58,26 @@ export function MaterialsPage({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return MATERIALS.filter((m) => {
+    return MATERIAL_INDEX.filter(({ material: m, haystack }) => {
       if (category === 'zhifa' && !m.tags.includes('行政执法')) return false;
       if (category !== 'all' && category !== 'zhifa' && m.category !== category) return false;
       if (shenlunType !== 'all' && !m.shenlunTypes?.includes(shenlunType)) return false;
       if (!q) return true;
-      return [m.title, m.content, m.usage, ...m.tags].join(' ').toLowerCase().includes(q);
-    });
+      return haystack.includes(q);
+    }).map((item) => item.material);
   }, [category, query, shenlunType]);
+
+  const handleSave = useCallback(
+    (material: Material) => {
+      onSaveMaterial({
+        materialId: material.id,
+        kind: material.category,
+        text: `${material.title}\n${material.content}`,
+        note: material.usage,
+      });
+    },
+    [onSaveMaterial],
+  );
 
   const handleCopy = async (id: string, text: string) => {
     const ok = await copyText(text);
@@ -134,16 +151,7 @@ export function MaterialsPage({
                 key={m.id}
                 material={m}
                 saved={isMaterialSaved(m.id)}
-                copied={copiedId === m.id}
-                onCopy={() => handleCopy(m.id, `${m.title}\n${m.content}\n用法：${m.usage}`)}
-                onSave={() =>
-                  onSaveMaterial({
-                    materialId: m.id,
-                    kind: m.category,
-                    text: `${m.title}\n${m.content}`,
-                    note: m.usage,
-                  })
-                }
+                onSave={handleSave}
               />
             ))}
           </div>
@@ -194,19 +202,30 @@ function ReadingLinksPanel() {
   );
 }
 
-function MaterialCard({
+const MaterialCard = memo(function MaterialCard({
   material,
   saved,
-  copied,
-  onCopy,
   onSave,
 }: {
   material: Material;
   saved: boolean;
-  copied: boolean;
-  onCopy: () => void;
-  onSave: () => void;
+  onSave: (material: Material) => void;
 }) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+  }, []);
+
+  const handleCopy = async () => {
+    const ok = await copyText(`${material.title}\n${material.content}\n用法：${material.usage}`);
+    if (!ok) return;
+    setCopied(true);
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
     <article className={`material-card cat-${material.category}`}>
       <div className="material-top">
@@ -226,14 +245,14 @@ function MaterialCard({
         </p>
       )}
       <div className="material-actions">
-        <button type="button" onClick={onCopy}>{copied ? '已复制' : '复制'}</button>
-        <button type="button" className="secondary" disabled={saved} onClick={onSave}>
+        <button type="button" onClick={handleCopy}>{copied ? '已复制' : '复制'}</button>
+        <button type="button" className="secondary" disabled={saved} onClick={() => onSave(material)}>
           {saved ? '已收入积累本' : '收入积累本'}
         </button>
       </div>
     </article>
   );
-}
+});
 
 function NotebookPanel({
   notebook,
